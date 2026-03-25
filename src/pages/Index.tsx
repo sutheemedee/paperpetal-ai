@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BOOK_SIZES, BookSize } from '@/utils/bookSizes';
 import { generateBook, StyleProfile } from '@/utils/generateBook';
-import { buildCoverImageUrl, buildBackCoverImageUrl } from '@/utils/imageGen';
+import { generateCoverImage, generateBackCoverImage } from '@/utils/imageGen';
 import { exportToDocx } from '@/utils/exportDocx';
 import { exportCoverAsPng } from '@/utils/exportCovers';
 import BookSizeSelector from '@/components/BookSizeSelector';
@@ -47,6 +47,8 @@ const Index = () => {
     }
     setGenerating(true);
     setBookData(null);
+    setCoverImageUrl('');
+    setBackCoverImageUrl('');
 
     try {
       setProgress(30);
@@ -58,11 +60,17 @@ const Index = () => {
         return;
       }
 
-      setProgress(70);
-      setProgressText('กำลังสร้างภาพปก...');
+      setProgress(60);
+      setProgressText('กำลังสร้างภาพปกด้วย AI...');
       setBookData(book);
-      setCoverImageUrl(buildCoverImageUrl(book, colorTheme));
-      setBackCoverImageUrl(buildBackCoverImageUrl(book));
+
+      // Generate cover images in parallel
+      const [coverUrl, backUrl] = await Promise.all([
+        generateCoverImage(book, colorTheme),
+        generateBackCoverImage(book),
+      ]);
+      setCoverImageUrl(coverUrl);
+      setBackCoverImageUrl(backUrl);
 
       setProgress(100);
       setProgressText('เสร็จสิ้น ✓');
@@ -71,6 +79,20 @@ const Index = () => {
       toast.error(`เกิดข้อผิดพลาด: ${err.message || 'ไม่ทราบสาเหตุ'}`);
     }
     setGenerating(false);
+  };
+
+  const handleRegenerateCover = async () => {
+    if (!bookData) return;
+    setCoverImageUrl('');
+    const url = await generateCoverImage(bookData, colorTheme);
+    setCoverImageUrl(url);
+  };
+
+  const handleRegenerateBack = async () => {
+    if (!bookData) return;
+    setBackCoverImageUrl('');
+    const url = await generateBackCoverImage(bookData);
+    setBackCoverImageUrl(url);
   };
 
   const handleExportDocx = async () => {
@@ -264,8 +286,8 @@ const Index = () => {
                 coverImageUrl={coverImageUrl}
                 backCoverImageUrl={backCoverImageUrl}
                 colorTheme={colorTheme}
-                onRegenerateCover={() => setCoverImageUrl(buildCoverImageUrl(bookData, colorTheme))}
-                onRegenerateBack={() => setBackCoverImageUrl(buildBackCoverImageUrl(bookData))}
+                onRegenerateCover={handleRegenerateCover}
+                onRegenerateBack={handleRegenerateBack}
               />
               <BookPreview bookData={bookData} bookSize={selectedSize} />
             </div>

@@ -3,13 +3,22 @@ import {
   ImageRun, AlignmentType,
 } from 'docx';
 import { saveAs } from 'file-saver';
-import { buildChapterImageUrl } from './imageGen';
+import { generateChapterImage } from './imageGen';
 import type { BookSize } from './bookSizes';
 
 const mmToTwip = (mm: number) => Math.round(mm * 56.693);
 
 const fetchImageAsBuffer = async (url: string): Promise<ArrayBuffer | null> => {
   try {
+    if (url.startsWith('data:')) {
+      const base64 = url.split(',')[1];
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
     const res = await fetch(url);
     const blob = await res.blob();
     return await blob.arrayBuffer();
@@ -60,20 +69,22 @@ export const exportToDocx = async (bookData: any, bookSize: BookSize, coverImage
       spacing: { after: 300 },
     }));
 
-    const chImgBuf = await fetchImageAsBuffer(
-      buildChapterImageUrl(chapter.chapterTitle, bookData.title, chapter.chapterNumber)
-    );
-    if (chImgBuf) {
-      children.push(new Paragraph({
-        children: [new ImageRun({
-          type: 'png',
-          data: chImgBuf,
-          transformation: { width: 500, height: 250 },
-          altText: { title: chapter.chapterTitle, description: `Chapter ${chapter.chapterNumber} image`, name: `ch${chapter.chapterNumber}` },
-        })],
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 300 },
-      }));
+    // Generate chapter image via AI
+    const chImgUrl = await generateChapterImage(chapter.chapterTitle, bookData.title);
+    if (chImgUrl) {
+      const chImgBuf = await fetchImageAsBuffer(chImgUrl);
+      if (chImgBuf) {
+        children.push(new Paragraph({
+          children: [new ImageRun({
+            type: 'png',
+            data: chImgBuf,
+            transformation: { width: 500, height: 250 },
+            altText: { title: chapter.chapterTitle, description: `Chapter ${chapter.chapterNumber} image`, name: `ch${chapter.chapterNumber}` },
+          })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 300 },
+        }));
+      }
     }
 
     for (const page of chapter.pages) {
