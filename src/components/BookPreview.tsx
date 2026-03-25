@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import BookImage from './BookImage';
-import { buildChapterImageUrl } from '@/utils/imageGen';
+import { generateChapterImage } from '@/utils/imageGen';
 import type { BookSize } from '@/utils/bookSizes';
 
 interface BookPreviewProps {
@@ -13,23 +13,16 @@ const BookPreview = ({ bookData, bookSize }: BookPreviewProps) => {
   const pw = bookSize.pageWidth || 559;
   const ph = bookSize.pageHeight || 794;
   const m = bookSize.margins;
-  const [chapterSeeds, setChapterSeeds] = useState<Record<number, number>>({});
+  const [regenerateKeys, setRegenerateKeys] = useState<Record<number, number>>({});
 
-  const getChapterImageUrl = (chapter: any) => {
-    const seed = chapterSeeds[chapter.chapterNumber];
-    if (seed !== undefined) {
-      const prompt = encodeURIComponent(
-        `editorial illustration for book chapter titled "${chapter.chapterTitle}" from a book about "${bookData.title}", conceptual art, wide banner, cinematic, no text`
-      );
-      return `https://image.pollinations.ai/prompt/${prompt}?width=800&height=400&nologo=true&seed=${seed}`;
-    }
-    return buildChapterImageUrl(chapter.chapterTitle, bookData.title, chapter.chapterNumber);
-  };
+  const getChapterImageFn = useCallback((chapter: any) => {
+    return () => generateChapterImage(chapter.chapterTitle, bookData.title);
+  }, [bookData.title]);
 
   return (
     <div className="flex flex-col gap-6 items-center">
       {bookData.chapters.map((chapter: any) => (
-        <div key={chapter.chapterNumber}>
+        <div key={`${chapter.chapterNumber}-${regenerateKeys[chapter.chapterNumber] || 0}`}>
           {/* Chapter Opening Page */}
           <div
             className="bg-background rounded-xl border border-border shadow-sm overflow-hidden mb-4"
@@ -40,14 +33,14 @@ const BookPreview = ({ bookData, bookSize }: BookPreviewProps) => {
             }}
           >
             <BookImage
-              src={getChapterImageUrl(chapter)}
+              generateFn={getChapterImageFn(chapter)}
               width="100%"
               height={200 * scale}
               alt={chapter.chapterTitle}
               onRegenerate={() => {
-                setChapterSeeds(prev => ({
+                setRegenerateKeys(prev => ({
                   ...prev,
-                  [chapter.chapterNumber]: Math.floor(Math.random() * 99999),
+                  [chapter.chapterNumber]: (prev[chapter.chapterNumber] || 0) + 1,
                 }));
               }}
             />
