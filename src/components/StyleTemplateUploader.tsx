@@ -5,10 +5,9 @@ import type { StyleProfile } from '@/utils/generateBook';
 
 interface StyleTemplateUploaderProps {
   onStyleExtracted: (profile: StyleProfile | null) => void;
-  apiKey: string;
 }
 
-const StyleTemplateUploader = ({ onStyleExtracted, apiKey }: StyleTemplateUploaderProps) => {
+const StyleTemplateUploader = ({ onStyleExtracted }: StyleTemplateUploaderProps) => {
   const [analyzing, setAnalyzing] = useState(false);
   const [styleProfile, setStyleProfile] = useState<StyleProfile | null>(null);
   const [fileName, setFileName] = useState('');
@@ -16,12 +15,12 @@ const StyleTemplateUploader = ({ onStyleExtracted, apiKey }: StyleTemplateUpload
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
-    if (!f || !apiKey) return;
+    if (!f) return;
     setFileName(f.name);
     setAnalyzing(true);
     try {
       const text = await extractTextFromFile(f);
-      const profile = await analyzeWritingStyle(text, apiKey);
+      const profile = await analyzeWritingStyle(text);
       setStyleProfile(profile);
       onStyleExtracted(profile);
     } catch {

@@ -25,7 +25,6 @@ const LANGUAGES = [
 ];
 
 const Index = () => {
-  const [apiKey, setApiKey] = useState('');
   const [title, setTitle] = useState('');
   const [pageCount, setPageCount] = useState(20);
   const [selectedSize, setSelectedSize] = useState<BookSize>(BOOK_SIZES[1]);
@@ -42,8 +41,8 @@ const Index = () => {
   const [exporting, setExporting] = useState(false);
 
   const handleGenerate = async () => {
-    if (!apiKey || !title) {
-      toast.error('กรุณากรอก API Key และหัวข้อหนังสือ');
+    if (!title) {
+      toast.error('กรุณากรอกหัวข้อหนังสือ');
       return;
     }
     setGenerating(true);
@@ -52,7 +51,7 @@ const Index = () => {
     try {
       setProgress(30);
       setProgressText('กำลังสร้างโครงสร้างและเนื้อหาหนังสือ...');
-      const book = await generateBook(title, pageCount, language, styleProfile, apiKey);
+      const book = await generateBook(title, pageCount, language, styleProfile);
       if (!book) {
         toast.error('ไม่สามารถสร้างหนังสือได้ กรุณาลองใหม่');
         setGenerating(false);
@@ -103,19 +102,6 @@ const Index = () => {
         <div className="flex items-center gap-2">
           <span className="text-2xl">📚</span>
           <h1 className="text-lg font-heading font-bold text-foreground">AI E-Book Generator</h1>
-        </div>
-
-        {/* API Key */}
-        <div>
-          <label className="text-xs font-semibold font-ui text-foreground mb-1 block">🔑 Anthropic API Key</label>
-          <input
-            type="password"
-            value={apiKey}
-            onChange={e => setApiKey(e.target.value)}
-            placeholder="sk-ant-..."
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-xs font-ui focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-          <p className="text-[10px] text-muted-foreground font-ui mt-1">🔒 Key ไม่ถูกบันทึกหรือส่งออก</p>
         </div>
 
         {/* Topic */}
@@ -214,7 +200,7 @@ const Index = () => {
         </div>
 
         {/* Style Template */}
-        <StyleTemplateUploader onStyleExtracted={setStyleProfile} apiKey={apiKey} />
+        <StyleTemplateUploader onStyleExtracted={setStyleProfile} />
 
         {/* Progress */}
         {generating && (
@@ -232,9 +218,9 @@ const Index = () => {
         {/* Generate Button */}
         <button
           onClick={handleGenerate}
-          disabled={generating || !apiKey || !title}
+          disabled={generating || !title}
           className={`w-full rounded-full py-3 text-sm font-ui font-bold transition-all ${
-            generating || !apiKey || !title
+            generating || !title
               ? 'bg-accent text-muted-foreground cursor-not-allowed'
               : 'bg-primary text-primary-foreground cursor-pointer hover:opacity-90 shadow-md'
           }`}
