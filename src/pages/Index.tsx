@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpenCheck, Settings2, Sparkles, Wand2, X } from 'lucide-react';
+import { BookOpenCheck, Flower2, Settings2, Sparkles, Wand2, X } from 'lucide-react';
 import { BOOK_SIZES, BookSize } from '@/utils/bookSizes';
 import { generateBook, StyleProfile } from '@/utils/generateBook';
 import { generateCoverImage, generateBackCoverImage } from '@/utils/imageGen';
@@ -9,6 +9,8 @@ import { exportToEpub } from '@/utils/exportEpub';
 import { exportCoverAsPng } from '@/utils/exportCovers';
 import { useIllustrations, hydrateBook } from '@/hooks/useIllustrations';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useKnowledge } from '@/knowledge/store';
+import { Link } from 'react-router-dom';
 import BookSizeSelector from '@/components/BookSizeSelector';
 import StyleTemplateUploader from '@/components/StyleTemplateUploader';
 import CoverDesigner from '@/components/CoverDesigner';
@@ -35,6 +37,8 @@ const LANGUAGES = [
 const Index = () => {
   const isMobile = useIsMobile();
   const illustrations = useIllustrations();
+  const { activeSources, chatPayloadSources } = useKnowledge();
+  const [sourceMode, setSourceMode] = useState('source_ai');
 
   const [title, setTitle] = useState('');
   const [pageCount, setPageCount] = useState(20);
@@ -68,7 +72,14 @@ const Index = () => {
     try {
       setProgress(25);
       setProgressText('กำลังสร้างโครงสร้างและเนื้อหาหนังสือ...');
-      const book = await generateBook(title, pageCount, language, styleProfile);
+      const book = await generateBook(
+        title,
+        pageCount,
+        language,
+        styleProfile,
+        chatPayloadSources(),
+        sourceMode,
+      );
       if (!book) {
         toast.error('ไม่สามารถสร้างหนังสือได้ กรุณาลองใหม่');
         setGenerating(false);
@@ -242,6 +253,22 @@ const Index = () => {
         </div>
       </div>
 
+      {/* Source grounding */}
+      <div>
+        <div className="mb-2 text-xs font-semibold font-ui text-foreground">
+          ใช้คลังความรู้ ({activeSources.length} แหล่ง)
+        </div>
+        <select
+          value={sourceMode}
+          onChange={e => setSourceMode(e.target.value)}
+          className="min-h-10 w-full rounded-xl border border-border bg-background px-3 text-xs font-ui"
+        >
+          <option value="source_only">ใช้แหล่งข้อมูลเท่านั้น (Source Lock: สูง)</option>
+          <option value="source_ai">แหล่งข้อมูลเป็นหลัก + AI เสริม</option>
+          <option value="creative">สร้างสรรค์อิสระ</option>
+        </select>
+      </div>
+
       <StyleTemplateUploader onStyleExtracted={setStyleProfile} />
 
       {generating && (
@@ -328,8 +355,8 @@ const Index = () => {
       {/* Desktop sidebar */}
       <aside className="hidden max-h-screen w-80 min-w-[320px] flex-col gap-5 overflow-y-auto border-r border-border bg-secondary p-5 md:flex">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">📚</span>
-          <h1 className="font-heading text-lg font-bold text-foreground">AI E-Book Studio</h1>
+          <Flower2 className="h-6 w-6 text-primary" />
+          <Link to="/" className="font-heading text-lg font-bold text-foreground">PaperPetal AI</Link>
         </div>
         {settingsPanel}
       </aside>
@@ -348,9 +375,9 @@ const Index = () => {
       <main className="flex flex-1 flex-col overflow-x-hidden">
         <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-border bg-background/95 px-4 py-3 backdrop-blur md:px-6">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="text-lg md:hidden">📚</span>
+            <Link to="/" aria-label="กลับหน้าแรก"><Flower2 className="h-5 w-5 text-primary" /></Link>
             <div className="truncate font-heading text-sm font-bold text-foreground md:text-base">
-              {bookData ? bookData.title : 'AI E-Book Studio'}
+              {bookData ? bookData.title : 'PaperPetal Write'}
             </div>
           </div>
 
