@@ -99,7 +99,10 @@ serve(async (req) => {
           },
         },
       });
-      emailStatus = mailError ? 'failed' : 'sent';
+      if (!mailError) emailStatus = 'sent';
+      else emailStatus = /404|not[\s_-]?found|Failed to send a request/i.test(String(mailError.message ?? mailError))
+        ? 'skipped_no_email_infra'
+        : 'failed';
     } catch {
       emailStatus = 'skipped_no_email_infra';
     }
