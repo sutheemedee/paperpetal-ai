@@ -308,6 +308,45 @@ export type Database = {
         }
         Relationships: []
       }
+      quota_notifications: {
+        Row: {
+          created_at: string
+          email_status: string
+          id: string
+          level: string
+          limit_value: number
+          metric: string
+          period_start: string
+          plan_code: string | null
+          used: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_status?: string
+          id?: string
+          level: string
+          limit_value?: number
+          metric: string
+          period_start: string
+          plan_code?: string | null
+          used?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_status?: string
+          id?: string
+          level?: string
+          limit_value?: number
+          metric?: string
+          period_start?: string
+          plan_code?: string | null
+          used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       sources: {
         Row: {
           category: string | null
