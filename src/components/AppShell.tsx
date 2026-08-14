@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { DesktopNav, MobileNav } from '@/components/studio/nav';
 import AccountMenu from '@/components/account/AccountMenu';
 import { PetalMark } from '@/components/brand/Logo';
+import QuotaAlertBanner from '@/components/account/QuotaAlertBanner';
+
 
 const AppShell = ({ children, title }: { children: React.ReactNode; title?: string }) => {
   return (
