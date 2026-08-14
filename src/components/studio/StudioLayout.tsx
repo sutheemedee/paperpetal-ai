@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Flower2, PanelLeft, Sliders } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useDevice } from '@/hooks/use-device';
+import QuotaAlertBanner from '@/components/account/QuotaAlertBanner';
 import { DesktopNav, MobileNav } from './nav';
 
 interface PanelSpec {
