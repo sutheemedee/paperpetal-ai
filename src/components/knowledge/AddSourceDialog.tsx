@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, Upload } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { extractTextFromFile } from '@/utils/extractText';
@@ -15,11 +15,22 @@ const TABS: { id: SourceType; label: string }[] = [
   { id: 'text', label: 'วางข้อความ' },
 ];
 
-const AddSourceDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
+const AddSourceDialog = ({
+  open,
+  onOpenChange,
+  initialType,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  initialType?: SourceType;
+}) => {
   const { addSource, sources } = useKnowledge();
   const { consume, requireFeature, openUpgrade } = useEntitlements();
   const { account } = useAuth();
-  const [tab, setTab] = useState<SourceType>('youtube');
+  const [tab, setTab] = useState<SourceType>(initialType ?? 'youtube');
+  useEffect(() => {
+    if (open && initialType) setTab(initialType);
+  }, [open, initialType]);
   const [url, setUrl] = useState('');
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
