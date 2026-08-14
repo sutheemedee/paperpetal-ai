@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import Seo from '@/components/Seo';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/auth/AuthProvider';
 
@@ -36,10 +36,12 @@ export const ProtectedRoute = ({ children, adminOnly }: { children: React.ReactN
   }
   return (
     <>
-      <Helmet>
-        <title>{`${APP_TITLES[location.pathname] || 'Studio'} | PaperPetal AI`}</title>
-        <meta name="robots" content="noindex, nofollow" />
-      </Helmet>
+      <Seo
+        path={location.pathname}
+        title={`${APP_TITLES[location.pathname] || 'Studio'} | PaperPetal AI`}
+        description="พื้นที่ทำงานส่วนตัวของ PaperPetal AI"
+        noindex
+      />
       {children}
     </>
   );
