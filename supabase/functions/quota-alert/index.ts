@@ -87,7 +87,6 @@ serve(async (req) => {
         body: {
           templateName: 'quota-alert',
           recipientEmail: user.email,
-          idempidempotencyKey: undefined,
           idempotencyKey: `quota-${user.id}-${periodStart}-${worst.metric}-${worst.level}`,
           templateData: {
             planName: account.planName,
