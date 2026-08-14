@@ -57,7 +57,7 @@ const Dashboard = () => {
           <div className="rounded-3xl border border-border bg-card p-5">
             <p className="text-[11px] font-ui font-bold uppercase tracking-[0.14em] text-muted-foreground">Welcome back</p>
             <h1 className="mt-1 font-display text-2xl font-extrabold leading-tight md:text-3xl">
-              สวัสดี {profile?.display_name || 'ครีเอเตอร์'} 👋
+              สวัสดี {profile?.display_name || 'ครีเอเตอร์'}
             </h1>
             <p className="mt-1 text-sm font-ui text-muted-foreground">
               แผน {account?.planName ?? 'Free Trial'} · โปรเจกต์ {account?.projectCount ?? 0}
@@ -113,7 +113,7 @@ const Dashboard = () => {
         </section>
 
         {/* Projects + activity */}
-        <section className="grid gap-3 lg:grid-cols-[1.4fr_1fr]">
+        <section className="grid items-start gap-3 lg:grid-cols-[1.4fr_1fr]">
           <div className="rounded-3xl border border-border bg-card p-4">
             <div className="flex items-center justify-between">
               <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">Recent Projects</h2>

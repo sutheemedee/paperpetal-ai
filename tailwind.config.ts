@@ -28,6 +28,14 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         elevated: "hsl(var(--surface-elevated))",
+        "surface-hover": "hsl(var(--surface-hover))",
+        "background-deep": "hsl(var(--background-deep))",
+        electric: "hsl(var(--electric))",
+        cyan: "hsl(var(--cyan))",
+        petal: "hsl(var(--petal))",
+        coral: "hsl(var(--coral))",
+        orange: "hsl(var(--orange))",
+        warning: "hsl(var(--warning))",
         magenta: {
           DEFAULT: "hsl(var(--magenta))",
           foreground: "hsl(var(--magenta-foreground))",
@@ -78,6 +86,9 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontSize: {
+        display: ["2.5rem", { lineHeight: "1.15", fontWeight: "700" }],
       },
       keyframes: {
         "accordion-down": {

@@ -11,7 +11,7 @@ export const PetalMark = ({ className = 'h-8 w-8' }: { className?: string }) => 
         <stop offset="1" stopColor="#FFB020" />
       </linearGradient>
     </defs>
-    <rect width="64" height="64" rx="16" fill="hsl(230 44% 6%)" />
+    <rect width="64" height="64" rx="16" fill="hsl(var(--surface-elevated))" />
     <path d="M20 14h13a11 11 0 0 1 0 22h-6v14h-7V14zm7 7v8h6a4 4 0 0 0 0-8h-6z" fill="url(#petal-mark)" />
     <path d="M42 30c6-1 10-5 11-11 1 7-2 13-8 15-2 .7-3.4.2-4-1-.5-1.1 0-2.6 1-3z" fill="url(#petal-mark)" />
   </svg>

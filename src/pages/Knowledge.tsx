@@ -1,9 +1,19 @@
 import { useMemo, useState } from 'react';
-import { ChevronDown, Plus, Search, Trash2 } from 'lucide-react';
+import {
+  ChevronDown,
+  ClipboardType,
+  FileUp,
+  Globe,
+  LucideIcon,
+  Plus,
+  Search,
+  Trash2,
+  Youtube,
+} from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import AddSourceDialog from '@/components/knowledge/AddSourceDialog';
 import { useKnowledge } from '@/knowledge/store';
-import { KnowledgeSource, SOURCE_FOLDERS, SOURCE_TYPE_LABEL } from '@/knowledge/types';
+import { KnowledgeSource, SOURCE_FOLDERS, SOURCE_TYPE_LABEL, SourceType } from '@/knowledge/types';
 
 const ROLE_LABEL: Record<string, string> = {
   primary: 'แหล่งหลัก',
@@ -137,11 +147,24 @@ const SourceCard = ({ source }: { source: KnowledgeSource }) => {
   );
 };
 
+const SOURCE_TILES: { type: SourceType; label: string; hint: string; icon: LucideIcon }[] = [
+  { type: 'youtube', label: 'YouTube', hint: 'ลิงก์วิดีโอ + ทรานสคริปต์', icon: Youtube },
+  { type: 'website', label: 'เว็บไซต์', hint: 'บทความ / บล็อก / ข่าว', icon: Globe },
+  { type: 'txt', label: 'อัปโหลดไฟล์', hint: 'PDF · DOCX · TXT', icon: FileUp },
+  { type: 'text', label: 'วางข้อความ', hint: 'โน้ต / งานวิจัยของคุณ', icon: ClipboardType },
+];
+
 const Knowledge = () => {
   const { sources, activeSources } = useKnowledge();
   const [addOpen, setAddOpen] = useState(false);
+  const [addType, setAddType] = useState<SourceType>('youtube');
   const [q, setQ] = useState('');
   const [folder, setFolder] = useState('all');
+
+  const openAdd = (type: SourceType) => {
+    setAddType(type);
+    setAddOpen(true);
+  };
 
   const filtered = useMemo(
     () =>
@@ -155,24 +178,41 @@ const Knowledge = () => {
 
   return (
     <AppShell title="Source Studio">
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-3 py-4 md:px-6">
-        <div>
-          <h1 className="font-heading text-xl font-bold md:text-2xl">คลังความรู้ของโปรเจกต์</h1>
-          <p className="text-sm font-ui text-muted-foreground">
-            อัปโหลดครั้งเดียว ใช้ได้ทั้งหนังสือ พรีเซนเทชัน และงานเขียนทุกแบบ · ใช้งาน {activeSources.length}/{sources.length} แหล่ง
-          </p>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-4 md:px-6 md:py-6">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-ui font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Knowledge Workspace
+            </p>
+            <h1 className="mt-1 font-display text-2xl font-extrabold leading-tight md:text-3xl">คลังความรู้ของโปรเจกต์</h1>
+            <p className="mt-1 text-sm font-ui text-muted-foreground">
+              อัปโหลดครั้งเดียว ใช้ได้ทั้งหนังสือ พรีเซนเทชัน และงานเขียนทุกแบบ
+            </p>
+          </div>
+          <span className="rounded-full border border-border bg-elevated px-3 py-1.5 text-[11px] font-ui font-bold text-muted-foreground">
+            ใช้งาน {activeSources.length} / {sources.length} แหล่ง
+          </span>
         </div>
 
-        <button
-          onClick={() => setAddOpen(true)}
-          className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary text-sm font-ui font-bold text-primary-foreground shadow-md md:max-w-xs"
-        >
-          <Plus className="h-5 w-5" />
-          เพิ่มแหล่งข้อมูล (YouTube · เว็บ · PDF · DOCX · รูป · เสียง · ข้อความ)
-        </button>
+        {/* Source type tiles */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {SOURCE_TILES.map(t => (
+            <button
+              key={t.type}
+              onClick={() => openAdd(t.type)}
+              className="press group flex min-h-[92px] flex-col justify-center gap-1.5 rounded-2xl border border-border bg-card p-3 text-left transition-colors hover:border-primary/60 hover:bg-surface-hover"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-paperpetal text-primary-foreground">
+                <t.icon className="h-4 w-4" />
+              </span>
+              <span className="font-ui text-sm font-bold">{t.label}</span>
+              <span className="text-[11px] font-ui text-muted-foreground">{t.hint}</span>
+            </button>
+          ))}
+        </div>
 
         <div className="flex flex-col gap-2 sm:flex-row">
-          <div className="flex flex-1 items-center gap-2 rounded-full border border-border bg-background px-3">
+          <div className="flex flex-1 items-center gap-2 rounded-xl border border-border bg-elevated px-3">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <input
               value={q}
@@ -185,18 +225,24 @@ const Knowledge = () => {
             value={folder}
             onChange={e => setFolder(e.target.value)}
             aria-label="โฟลเดอร์"
-            className="min-h-11 rounded-full border border-border bg-background px-3 text-sm font-ui"
+            className="min-h-11 rounded-xl border border-border bg-elevated px-3 text-sm font-ui"
           >
             <option value="all">ทุกโฟลเดอร์</option>
             {SOURCE_FOLDERS.map(f => (
               <option key={f} value={f}>{f}</option>
             ))}
           </select>
+          <button
+            onClick={() => openAdd('youtube')}
+            className="press flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-paperpetal px-4 text-sm font-ui font-bold text-primary-foreground shadow-[var(--shadow-glow)]"
+          >
+            <Plus className="h-4 w-4" /> เพิ่มแหล่งข้อมูล
+          </button>
         </div>
 
         {filtered.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-border p-8 text-center">
-            <p className="font-heading text-base font-bold">ยังไม่มีแหล่งข้อมูล</p>
+          <div className="rounded-2xl border border-dashed border-strong bg-card/60 p-8 text-center">
+            <p className="font-display text-base font-bold">ยังไม่มีแหล่งข้อมูล</p>
             <p className="mt-1 text-sm font-ui text-muted-foreground">
               เริ่มด้วยการวางลิงก์ YouTube, ลิงก์เว็บไซต์, อัปโหลด PDF/Word หรือวางโน้ตของคุณ
             </p>
@@ -210,7 +256,7 @@ const Knowledge = () => {
         )}
       </div>
 
-      <AddSourceDialog open={addOpen} onOpenChange={setAddOpen} />
+      <AddSourceDialog open={addOpen} onOpenChange={setAddOpen} initialType={addType} />
     </AppShell>
   );
 };
