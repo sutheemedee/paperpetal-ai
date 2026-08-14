@@ -20,7 +20,7 @@ const VerifyEmail = () => {
   }, [session, countdown, navigate]);
 
   return (
-    <AuthLayout headline="EMAIL VERIFIED." sub="บัญชีของคุณพร้อมใช้งาน PaperPetal AI แล้ว">
+    <AuthLayout headline="EMAIL VERIFIED." sub="บัญชีของคุณพร้อมใช้งาน PaperPetal AI แล้ว" seo={{ title: "ยืนยันอีเมล | PaperPetal AI", description: "ยืนยันอีเมลเพื่อเริ่มใช้งาน PaperPetal AI", path: "/auth/verify-email", noindex: true }}>
       <div className="text-center">
         <MailCheck className="mx-auto h-10 w-10 text-success" />
         <h1 className="mt-3 font-display text-xl font-bold">
