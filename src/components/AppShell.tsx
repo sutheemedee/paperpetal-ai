@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Home, Layers, MessageCircle, Presentation, Sparkles } from 'lucide-react';
+import { BookOpen, Flower2, Home, Layers, MessageCircle, Presentation, Sparkles } from 'lucide-react';
 
 const NAV = [
   { to: '/', label: 'หน้าแรก', icon: Home },
@@ -16,7 +16,7 @@ const AppShell = ({ children, title }: { children: React.ReactNode; title?: stri
     <div className="flex min-h-screen flex-col bg-background">
       <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
         <Link to="/" className="flex min-w-0 items-center gap-2">
-          <span className="text-xl">🌸</span>
+          <Flower2 className="h-5 w-5 text-primary" />
           <span className="truncate font-heading text-sm font-bold md:text-base">
             {title || 'PaperPetal AI'}
           </span>

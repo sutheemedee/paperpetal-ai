@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BookOpenCheck, Settings2, Sparkles, Wand2, X } from 'lucide-react';
+import { BookOpenCheck, Flower2, Settings2, Sparkles, Wand2, X } from 'lucide-react';
 import { BOOK_SIZES, BookSize } from '@/utils/bookSizes';
 import { generateBook, StyleProfile } from '@/utils/generateBook';
 import { generateCoverImage, generateBackCoverImage } from '@/utils/imageGen';
@@ -355,7 +355,7 @@ const Index = () => {
       {/* Desktop sidebar */}
       <aside className="hidden max-h-screen w-80 min-w-[320px] flex-col gap-5 overflow-y-auto border-r border-border bg-secondary p-5 md:flex">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">🌸</span>
+          <Flower2 className="h-6 w-6 text-primary" />
           <Link to="/" className="font-heading text-lg font-bold text-foreground">PaperPetal AI</Link>
         </div>
         {settingsPanel}
@@ -375,7 +375,7 @@ const Index = () => {
       <main className="flex flex-1 flex-col overflow-x-hidden">
         <header className="sticky top-0 z-20 flex items-center justify-between gap-2 border-b border-border bg-background/95 px-4 py-3 backdrop-blur md:px-6">
           <div className="flex min-w-0 items-center gap-2">
-            <Link to="/" className="text-lg" aria-label="กลับหน้าแรก">🌸</Link>
+            <Link to="/" aria-label="กลับหน้าแรก"><Flower2 className="h-5 w-5 text-primary" /></Link>
             <div className="truncate font-heading text-sm font-bold text-foreground md:text-base">
               {bookData ? bookData.title : 'PaperPetal Write'}
             </div>
