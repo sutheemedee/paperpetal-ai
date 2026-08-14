@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { EntitlementsProvider, useEntitlements } from '@/auth/useEntitlements';
 import { FakeEntitlementsServer, makeAccount } from './harness';
 import type { AccountState } from '@/auth/AuthProvider';
 import type { PlanCode } from '@/lib/plans';
@@ -57,7 +58,6 @@ const EXPORT_GATE: Record<string, 'pdf' | 'docx' | 'epub' | null> = {
 };
 
 const Harness = ({ onResult }: { onResult: (r: string) => void }) => {
-  const { useEntitlements } = require('@/auth/useEntitlements');
   const { consume, check, requireFeature, usage, can } = useEntitlements();
 
   const doExport = async (format: string) => {
@@ -89,7 +89,6 @@ const Harness = ({ onResult }: { onResult: (r: string) => void }) => {
 };
 
 const mount = async (results: string[]) => {
-  const { EntitlementsProvider } = await import('@/auth/useEntitlements');
   return render(
     <MemoryRouter>
       <EntitlementsProvider>

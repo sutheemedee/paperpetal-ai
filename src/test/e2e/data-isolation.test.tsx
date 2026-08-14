@@ -4,6 +4,7 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { act, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { FakeRlsTable } from './harness';
 
 const USER_A = { id: 'aaaaaaaa-0000-4000-8000-000000000001', email: 'a@paperpetal.test' };
@@ -80,13 +81,13 @@ describe('Projects page renders only the signed-in user data', () => {
     }));
     const { default: Projects } = await import('@/pages/Projects');
 
-    const a = render(<Projects />);
+    const a = render(<MemoryRouter><Projects /></MemoryRouter>);
     await waitFor(() => expect(screen.getByText('หนังสือของ A')).toBeInTheDocument());
     expect(screen.queryByText('หนังสือของ B')).not.toBeInTheDocument();
     a.unmount();
 
     currentUid = USER_B.id;
-    render(<Projects />);
+    render(<MemoryRouter><Projects /></MemoryRouter>);
     await waitFor(() => expect(screen.getByText('หนังสือของ B')).toBeInTheDocument());
     expect(screen.queryByText('หนังสือของ A')).not.toBeInTheDocument();
   });
