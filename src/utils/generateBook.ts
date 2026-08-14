@@ -16,10 +16,12 @@ export const generateBook = async (
   pageCount: number,
   language: string,
   styleProfile: StyleProfile | null,
+  sources: any[] = [],
+  sourceMode: string = 'source_ai',
 ): Promise<any> => {
   try {
     const { data, error } = await supabase.functions.invoke('generate-book', {
-      body: { title, pageCount, language, styleProfile },
+      body: { title, pageCount, language, styleProfile, sources, sourceMode },
     });
 
     if (error) {

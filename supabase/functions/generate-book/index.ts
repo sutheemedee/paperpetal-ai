@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { title, pageCount, language, styleProfile } = await req.json();
+    const { title, pageCount, language, styleProfile, sources = [], sourceMode = 'source_ai' } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -33,6 +33,23 @@ Every page, every sentence must match this style precisely.`;
 
     const langLabel = language === 'thai' ? 'Thai (ภาษาไทย)' : 'English';
 
+    const sourceBlock = sources.length
+      ? `PROJECT SOURCES (source mode: ${sourceMode}):\n` +
+        sources
+          .map((s: any, i: number) => `### Source ${String(i + 1).padStart(2, '0')} \u00b7 ${s.sourceType} \u00b7 ${s.title} (role: ${s.role})
+Summary: ${s.summary || ''}
+Key points: ${(s.keyPoints || []).join(' | ')}
+Chunks:
+${(s.chunks || []).map((c: any) => `- [${c.location || 'n/a'}] ${c.heading || ''}: ${c.summary || c.content || ''}`).join('\n')}`)
+          .join('\n\n') +
+        `\n\nGROUNDING RULES:
+- Base the book on these sources. Cite as [Source NN \u00b7 location] using ONLY the given source numbers and locations.
+- Never invent citations, page numbers or timestamps. Never attribute your own knowledge to a source.
+- Surface conflicts between sources instead of hiding them.
+${sourceMode === 'source_only' ? '- SOURCE ONLY: do not add facts that are absent from the sources; state clearly when information is missing.' : ''}
+${sourceMode === 'creative' ? '- CREATIVE: you may transform the source material creatively.' : ''}`
+      : '';
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -45,7 +62,7 @@ Every page, every sentence must match this style precisely.`;
           { role: "system", content: buildSystemPrompt(styleProfile) },
           {
             role: "user",
-            content: `Create a complete e-book on the topic: "${title}".
+            content: `${sourceBlock}\n\nCreate a complete e-book on the topic: "${title}".
 Language: ${langLabel}
 The book should have enough content to fill approximately ${pageCount} pages.
 
