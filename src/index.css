@@ -59,15 +59,48 @@
     @apply border-border;
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-ui);
+    /* no horizontal page overflow on any device */
+    overflow-x: hidden;
+    text-wrap: pretty;
   }
 
   h1, h2, h3, h4 {
     font-family: var(--font-heading);
+    text-wrap: balance;
+  }
+
+  /* keep tap targets comfortable and remove hover-only reliance on touch */
+  button, a, select, [role='button'] {
+    touch-action: manipulation;
+  }
+
+  /* readable form text on phones (prevents iOS zoom-on-focus) */
+  @media (max-width: 767px) {
+    input, select, textarea {
+      font-size: 16px;
+    }
+  }
+
+  img, canvas, svg, video {
+    max-width: 100%;
   }
 }
+
+/* safe-area helpers */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
 
 @keyframes shimmer {
   0% { background-position: 200% 0; }
