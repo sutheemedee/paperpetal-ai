@@ -27,7 +27,7 @@ const WATCHED: UsageMetric[] = ['aiPages', 'aiImages', 'slides', 'sourceProcessi
 interface AccountLike {
   counters?: Partial<Record<UsageMetric, number>> | null;
   bonus?: Partial<Record<UsageMetric, number>> | null;
-  entitlements?: Record<string, unknown> | null;
+  entitlements?: Record<string, unknown> | Record<string, never> | object | null;
 }
 
 /** All metrics that reached a notification threshold, worst first. */
@@ -35,7 +35,7 @@ export const collectQuotaAlerts = (account: AccountLike | null | undefined): Quo
   if (!account) return [];
   const out: QuotaAlert[] = [];
   for (const metric of WATCHED) {
-    const base = (account.entitlements as Record<string, unknown> | null)?.[metric];
+    const base = (account.entitlements as Record<string, unknown> | null | undefined)?.[metric];
     if (base === null || base === undefined) continue;
     const limit = Number(base) + (account.bonus?.[metric] ?? 0);
     if (!Number.isFinite(limit) || limit <= 0) continue;
