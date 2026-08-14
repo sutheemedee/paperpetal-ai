@@ -32,3 +32,13 @@ export const generateChapterImage = async (chapterTitle: string, bookTitle: stri
   const prompt = `Generate an editorial illustration for book chapter titled "${chapterTitle}" from a book about "${bookTitle}", conceptual art, wide banner format, cinematic, professional, no text, symbolic`;
   return generateImage(prompt);
 };
+
+export const generateSectionImage = async (
+  heading: string,
+  body: string,
+  bookTitle: string,
+): Promise<string> => {
+  const excerpt = (body || '').slice(0, 240);
+  const prompt = `Generate an editorial illustration for a book section titled "${heading}" from a book about "${bookTitle}". Section context: ${excerpt}. Conceptual editorial art, soft cinematic lighting, clean composition, wide format, no text, no letters, symbolic visual metaphor`;
+  return generateImage(prompt);
+};

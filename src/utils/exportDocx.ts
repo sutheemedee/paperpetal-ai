@@ -3,7 +3,6 @@ import {
   ImageRun, AlignmentType,
 } from 'docx';
 import { saveAs } from 'file-saver';
-import { generateChapterImage } from './imageGen';
 import type { BookSize } from './bookSizes';
 
 const mmToTwip = (mm: number) => Math.round(mm * 56.693);
@@ -69,8 +68,8 @@ export const exportToDocx = async (bookData: any, bookSize: BookSize, coverImage
       spacing: { after: 300 },
     }));
 
-    // Generate chapter image via AI
-    const chImgUrl = await generateChapterImage(chapter.chapterTitle, bookData.title);
+    // Chapter illustration (already generated in the app)
+    const chImgUrl = chapter.imageUrl;
     if (chImgUrl) {
       const chImgBuf = await fetchImageAsBuffer(chImgUrl);
       if (chImgBuf) {
@@ -94,6 +93,21 @@ export const exportToDocx = async (bookData: any, bookSize: BookSize, coverImage
           heading: HeadingLevel.HEADING_2,
           spacing: { before: 200, after: 100 },
         }));
+      }
+      if (page.imageUrl) {
+        const pgBuf = await fetchImageAsBuffer(page.imageUrl);
+        if (pgBuf) {
+          children.push(new Paragraph({
+            children: [new ImageRun({
+              type: 'png',
+              data: pgBuf,
+              transformation: { width: 440, height: 220 },
+              altText: { title: page.heading || 'illustration', description: 'Section illustration', name: `pg${page.pageNumber}` },
+            })],
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+          }));
+        }
       }
       children.push(new Paragraph({
         children: [new TextRun({ text: page.body, size: (bookSize.fontSize || 13) * 2, font: 'Arial' })],
