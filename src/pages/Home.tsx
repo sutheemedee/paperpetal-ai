@@ -51,6 +51,33 @@ const Home = () => {
 
   return (
     <div className="min-h-[100dvh] bg-background">
+      <Seo
+        path="/"
+        title="PaperPetal AI — สร้าง E-Book, หนังสือ และพรีเซนเทชันด้วย AI"
+        description="เปลี่ยน YouTube, PDF และเว็บไซต์ให้เป็นคลังความรู้ แล้วให้ AI เขียนหนังสือ e-book มังงะ และสไลด์พร้อมอ้างอิง ส่งออก PDF, DOCX, EPUB, PPTX เริ่มใช้ฟรี"
+        jsonLd={[
+          faqJsonLd(FAQS),
+          {
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: 'PaperPetal AI',
+            applicationCategory: 'BusinessApplication',
+            operatingSystem: 'Web',
+            url: SITE_URL,
+            inLanguage: 'th-TH',
+            description:
+              'AI Knowledge, Book & Presentation Studio สร้าง e-book หนังสือ และสไลด์จากแหล่งข้อมูลจริง',
+            offers: FALLBACK_PLANS.map(p => ({
+              '@type': 'Offer',
+              name: p.name,
+              price: p.price_thb,
+              priceCurrency: 'THB',
+              url: `${SITE_URL}/pricing`,
+            })),
+          },
+        ]}
+      />
+
       <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-background/90 px-4 py-2.5 backdrop-blur">
         <Link to="/" className="flex items-center gap-2">
           <PetalMark className="h-8 w-8" />
