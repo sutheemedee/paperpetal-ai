@@ -11,12 +11,11 @@ interface CoverDesignerProps {
 
 const CoverDesigner = ({ bookData, coverImageUrl, backCoverImageUrl, onRegenerateCover, onRegenerateBack }: CoverDesignerProps) => {
   return (
-    <div className="flex flex-col gap-6 items-center">
+    <div className="flex w-full flex-col items-center gap-6">
       {/* Front Cover */}
       <div
         id="front-cover"
-        className="relative overflow-hidden rounded-xl shadow-lg"
-        style={{ width: 320, height: 460 }}
+        className="relative aspect-[320/460] w-full max-w-[320px] overflow-hidden rounded-2xl shadow-lg"
       >
         <BookImage
           src={coverImageUrl}
@@ -41,8 +40,7 @@ const CoverDesigner = ({ bookData, coverImageUrl, backCoverImageUrl, onRegenerat
       {/* Back Cover */}
       <div
         id="back-cover"
-        className="relative overflow-hidden rounded-xl shadow-lg"
-        style={{ width: 320, height: 220 }}
+        className="relative aspect-[320/220] w-full max-w-[320px] overflow-hidden rounded-2xl shadow-lg"
       >
         <BookImage
           src={backCoverImageUrl}

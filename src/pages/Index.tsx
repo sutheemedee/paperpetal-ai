@@ -365,7 +365,7 @@ const Index = () => {
                   <Wand2 className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">{illustrateAll ? 'AI กำลังวาด...' : 'วาดภาพทุกส่วน'}</span>
                 </button>
-                <ExportMenu onExport={handleExport} busy={!!exporting} busyLabel="กำลังส่งออก..." />
+                {!isMobile && <ExportMenu onExport={handleExport} busy={!!exporting} busyLabel="กำลังส่งออก..." />}
               </>
             )}
             <button
