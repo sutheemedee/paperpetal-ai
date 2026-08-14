@@ -169,6 +169,22 @@ const Home = () => {
           </div>
         </section>
 
+        {/* FAQ — AEO: ตอบคำถามตรง ๆ ให้ search & answer engine ดึงไปใช้ */}
+        <section className="mx-auto w-full max-w-3xl px-4 pb-12">
+          <h2 className="font-display text-xl font-extrabold md:text-3xl">คำถามที่พบบ่อย</h2>
+          <div className="mt-4 flex flex-col gap-2">
+            {FAQS.map(f => (
+              <details key={f.q} className="group rounded-2xl border border-border bg-card p-4">
+                <summary className="cursor-pointer list-none font-display text-sm font-bold marker:hidden">
+                  {f.q}
+                </summary>
+                <p className="mt-2 text-xs font-body leading-relaxed text-muted-foreground md:text-sm">{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+
         <section className="mx-auto w-full max-w-4xl px-4 pb-16 text-center">
           <h2 className="font-display text-xl font-extrabold md:text-3xl">พร้อมเปลี่ยนความรู้ของคุณเป็นผลงาน?</h2>
           <Link to="/auth/sign-up" className="mx-auto mt-4 flex min-h-12 w-full max-w-xs items-center justify-center gap-2 rounded-full bg-gradient-ai text-sm font-ui font-bold text-primary-foreground">
