@@ -1,17 +1,21 @@
 import { Link } from 'react-router-dom';
 import { BookOpen, Presentation, Sparkles } from 'lucide-react';
 import { FullLogo, PetalMark } from '@/components/brand/Logo';
+import Seo from '@/components/Seo';
 
 const AuthLayout = ({
   children,
   headline,
   sub,
+  seo,
 }: {
   children: React.ReactNode;
   headline: string;
   sub: string;
+  seo?: { title: string; description: string; path: string; noindex?: boolean };
 }) => (
   <div className="min-h-[100dvh] bg-background">
+    {seo && <Seo {...seo} />}
     <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-16">
       {/* Product preview — desktop only */}
       <section className="hidden lg:block">

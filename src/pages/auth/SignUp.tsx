@@ -43,7 +43,7 @@ const SignUp = () => {
   };
 
   return (
-    <AuthLayout headline="START FREE." sub="ทดลองใช้ PaperPetal AI ได้จริงก่อนจ่าย — 3 โปรเจกต์ 30 AI Pages 10 AI Images">
+    <AuthLayout headline="START FREE." sub="ทดลองใช้ PaperPetal AI ได้จริงก่อนจ่าย — 3 โปรเจกต์ 30 AI Pages 10 AI Images" seo={{ title: "สมัครใช้ฟรี | PaperPetal AI สร้าง E-Book ด้วย AI", description: "สมัครใช้ PaperPetal AI ฟรี ไม่ต้องใช้บัตรเครดิต เริ่มสร้างหนังสือ e-book และสไลด์ด้วย AI ได้ทันที", path: "/auth/sign-up" }}>
       {sent ? (
         <div className="text-center">
           <h1 className="font-display text-xl font-bold">ตรวจอีเมลของคุณ</h1>

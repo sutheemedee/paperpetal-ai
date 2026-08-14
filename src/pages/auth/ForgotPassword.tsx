@@ -25,7 +25,7 @@ const ForgotPassword = () => {
   };
 
   return (
-    <AuthLayout headline="RESET YOUR ACCESS." sub="เราจะส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่อีเมลของคุณ">
+    <AuthLayout headline="RESET YOUR ACCESS." sub="เราจะส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่อีเมลของคุณ" seo={{ title: "ลืมรหัสผ่าน | PaperPetal AI", description: "ขอลิงก์ตั้งรหัสผ่านใหม่สำหรับบัญชี PaperPetal AI", path: "/auth/forgot-password", noindex: true }}>
       <h1 className="font-display text-xl font-bold">ลืมรหัสผ่าน</h1>
       {sent ? (
         <p className="mt-3 text-sm font-ui text-muted-foreground">

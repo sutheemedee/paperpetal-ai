@@ -6,6 +6,7 @@ import AppShell from '@/components/AppShell';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/auth/AuthProvider';
 import { FALLBACK_PLANS, PLAN_CTA, PLAN_HIGHLIGHTS, Plan, PlanCode } from '@/lib/plans';
+import Seo, { SITE_URL, breadcrumbJsonLd } from '@/components/Seo';
 
 const Pricing = () => {
   const { session, account, refresh } = useAuth();
@@ -54,6 +55,31 @@ const Pricing = () => {
 
   return (
     <AppShell>
+      <Seo
+        path="/pricing"
+        title="ราคาและแผนการใช้งาน | PaperPetal AI"
+        description="เปรียบเทียบแผน PaperPetal AI: Free Trial ใช้ฟรี, Starter 399 บาท, Creator 799 บาท และ Unlimited 1,490 บาท ต่อเดือน พร้อมโควตา AI และการส่งออก PDF, DOCX, EPUB, PPTX"
+        jsonLd={[
+          breadcrumbJsonLd([
+            { name: 'หน้าแรก', path: '/' },
+            { name: 'ราคา', path: '/pricing' },
+          ]),
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: 'PaperPetal AI',
+            description: 'AI Knowledge, Book & Presentation Studio',
+            url: `${SITE_URL}/pricing`,
+            offers: FALLBACK_PLANS.map(p => ({
+              '@type': 'Offer',
+              name: p.name,
+              price: p.price_thb,
+              priceCurrency: 'THB',
+              availability: 'https://schema.org/InStock',
+            })),
+          },
+        ]}
+      />
       <div className="mx-auto w-full max-w-6xl p-4 md:p-8">
         <div className="text-center">
           <p className="text-[11px] font-ui font-bold uppercase tracking-[0.2em] text-primary">Pricing</p>
