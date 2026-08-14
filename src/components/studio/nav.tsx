@@ -1,12 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Home, Layers, MessageCircle, Presentation } from 'lucide-react';
+import { BookOpen, LayoutDashboard, Layers, MessageCircle, Presentation } from 'lucide-react';
 
 export const NAV = [
-  { to: '/', label: 'หน้าแรก', short: 'Home', icon: Home },
+  { to: '/dashboard', label: 'หน้าหลัก', short: 'Home', icon: LayoutDashboard },
   { to: '/knowledge', label: 'แหล่งข้อมูล', short: 'Sources', icon: Layers },
   { to: '/book', label: 'สร้าง', short: 'Create', icon: BookOpen, primary: true },
   { to: '/chat', label: 'AI Chat', short: 'Chat', icon: MessageCircle },
-  { to: '/present', label: 'พรีเซนต์', short: 'Present', icon: Presentation },
+  { to: '/projects', label: 'โปรเจกต์', short: 'Projects', icon: Presentation },
 ];
 
 export const DesktopNav = () => {

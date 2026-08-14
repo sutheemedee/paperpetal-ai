@@ -4,6 +4,7 @@ import { BookmarkPlus, Send } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import { useKnowledge } from '@/knowledge/store';
 import { toast } from 'sonner';
+import { useEntitlements } from '@/auth/useEntitlements';
 
 const MODES = [
   { id: 'source_only', label: 'ใช้แหล่งข้อมูลเท่านั้น' },
@@ -28,6 +29,7 @@ interface Msg { role: 'user' | 'assistant'; content: string }
 
 const Chat = () => {
   const { activeSources, chatPayloadSources, addNote } = useKnowledge();
+  const { consume } = useEntitlements();
   const [messages, setMessages] = useState<Msg[]>([]);
   const [mode, setMode] = useState('source_ai');
   const [input, setInput] = useState('');
@@ -37,6 +39,7 @@ const Chat = () => {
   const send = async (textArg?: string) => {
     const text = (textArg ?? input).trim();
     if (!text || busy) return;
+    if (!(await consume({ metric: 'research', operation: 'knowledge_chat', metadata: { mode } }))) return;
     const next: Msg[] = [...messages, { role: 'user', content: text }];
     setMessages([...next, { role: 'assistant', content: '' }]);
     setInput('');

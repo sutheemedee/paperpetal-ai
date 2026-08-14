@@ -19,6 +19,10 @@ import ZoomPanCanvas from '@/components/studio/ZoomPanCanvas';
 import ImageViewer from '@/components/studio/ImageViewer';
 import BookPageCanvas, { flattenBook } from '@/components/studio/bookPages';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/auth/AuthProvider';
+import { useEntitlements } from '@/auth/useEntitlements';
+import UsageBar from '@/components/account/UsageBar';
 
 const PAGE_COUNTS = [10, 20, 30, 50, 100];
 const COLOR_THEMES = [
@@ -38,6 +42,10 @@ const Index = () => {
   const { isMobile } = useDevice();
   const illustrations = useIllustrations();
   const { activeSources, chatPayloadSources } = useKnowledge();
+  const { consume, check, requireFeature } = useEntitlements();
+  const { user, refresh } = useAuth();
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [sourceMode, setSourceMode] = useState('source_ai');
 
   const [title, setTitle] = useState('');
@@ -66,6 +74,8 @@ const Index = () => {
       toast.error('กรุณากรอกหัวข้อหนังสือ');
       return;
     }
+    // Server-verified quota: AI pages for the draft + 2 AI images for the covers.
+    if (!(await consume({ metric: 'aiPages', quantity: pageCount, operation: 'generate_book' }))) return;
     setGenerating(true);
     setBookData(null);
     setCoverImageUrl('');
@@ -87,12 +97,14 @@ const Index = () => {
       setProgressText('กำลังสร้างภาพปกด้วย AI...');
       setBookData(book);
 
-      const [coverUrl, backUrl] = await Promise.all([
-        generateCoverImage(book, colorTheme),
-        generateBackCoverImage(book),
-      ]);
-      setCoverImageUrl(coverUrl);
-      setBackCoverImageUrl(backUrl);
+      if (await consume({ metric: 'aiImages', quantity: 2, operation: 'generate_covers' })) {
+        const [coverUrl, backUrl] = await Promise.all([
+          generateCoverImage(book, colorTheme),
+          generateBackCoverImage(book),
+        ]);
+        setCoverImageUrl(coverUrl);
+        setBackCoverImageUrl(backUrl);
+      }
 
       setProgress(100);
       setProgressText('เสร็จสิ้น ✓');
@@ -105,6 +117,8 @@ const Index = () => {
 
   const handleIllustrateAll = async () => {
     if (!bookData || illustrateAll) return;
+    const targets = flattenBook(bookData).length;
+    if (!(await consume({ metric: 'aiImages', quantity: Math.max(1, targets), operation: 'illustrate_all' }))) return;
     setIllustrateAll(true);
     toast.info('AI กำลังวาดภาพประกอบทุกส่วน อาจใช้เวลาสักครู่');
     await illustrations.makeAll(bookData);
@@ -114,18 +128,60 @@ const Index = () => {
 
   const handleRegenerateCover = async () => {
     if (!bookData) return;
+    if (!(await consume({ metric: 'aiImages', operation: 'regenerate_front_cover' }))) return;
     setCoverImageUrl('');
     setCoverImageUrl(await generateCoverImage(bookData, colorTheme));
   };
 
   const handleRegenerateBack = async () => {
     if (!bookData) return;
+    if (!(await consume({ metric: 'aiImages', operation: 'regenerate_back_cover' }))) return;
     setBackCoverImageUrl('');
     setBackCoverImageUrl(await generateBackCoverImage(bookData));
   };
 
+  const saveProject = async () => {
+    if (!bookData || !user) return;
+    setSaving(true);
+    const payload = {
+      name: bookData.title || title || 'หนังสือไม่มีชื่อ',
+      kind: 'book',
+      cover_url: coverImageUrl || null,
+      data: { bookData, size: selectedSize.id, colorTheme, coverStyle, language, coverImageUrl, backCoverImageUrl },
+    };
+    const { error } = projectId
+      ? await supabase.from('projects').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', projectId)
+      : await supabase
+          .from('projects')
+          .insert({ ...payload, user_id: user.id })
+          .select('id')
+          .single()
+          .then(res => {
+            if (res.data) setProjectId(res.data.id);
+            return { error: res.error };
+          });
+    setSaving(false);
+    if (error) {
+      toast.error('บันทึกโปรเจกต์ไม่สำเร็จ');
+      return;
+    }
+    toast.success('บันทึกโปรเจกต์แล้ว');
+    refresh();
+  };
+
   const handleExport = async (format: ExportFormat) => {
     if (!bookData) return;
+    const featureGate: Record<ExportFormat, { key: 'pdf' | 'docx' | 'epub'; label: string } | null> = {
+      pdf: { key: 'pdf', label: 'ส่งออก PDF' },
+      docx: { key: 'docx', label: 'ส่งออก Word (.docx)' },
+      epub: { key: 'epub', label: 'ส่งออก EPUB' },
+      png: null,
+    };
+    const gate = featureGate[format];
+    if (gate && !requireFeature(gate.key, gate.label)) return;
+    // Exports only consume quota after the file is produced successfully.
+    if (!(await check('exports'))) return;
+
     const hydrated = hydrateBook(bookData, illustrations.chapterImages, illustrations.pageImages);
     setExporting(format);
     try {
@@ -148,6 +204,7 @@ const Index = () => {
         await exportCoverAsPng('back-cover', 'back-cover.png');
         toast.success('บันทึกปก PNG สำเร็จ!');
       }
+      await consume({ metric: 'exports', operation: 'export_book', format, projectId });
     } catch (err: any) {
       toast.error(`ส่งออกไม่สำเร็จ: ${err?.message || 'ไม่ทราบสาเหตุ'}`);
     }
@@ -272,6 +329,16 @@ const Index = () => {
             <Wand2 className="h-4 w-4" />
             {illustrateAll ? 'AI กำลังวาด...' : 'วาดภาพประกอบทุกส่วน'}
           </button>
+          <button
+            onClick={saveProject}
+            disabled={saving}
+            className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-card text-sm font-ui font-bold disabled:opacity-60"
+          >
+            {saving ? 'กำลังบันทึก...' : projectId ? 'บันทึกการแก้ไข' : 'บันทึกเป็นโปรเจกต์'}
+          </button>
+          <div>
+            <UsageBar metric="aiPages" compact />
+          </div>
           <div>
             <div className="mb-2 text-sm font-semibold font-ui">ส่งออก · ตรวจแล้วพร้อมเผยแพร่</div>
             <ExportMenu onExport={handleExport} busy={!!exporting} busyLabel="กำลังส่งออก..." fullWidth />
