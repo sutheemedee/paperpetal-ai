@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { DesktopNav, MobileNav } from '@/components/studio/nav';
 import AccountMenu from '@/components/account/AccountMenu';
 import { PetalMark } from '@/components/brand/Logo';
+import QuotaAlertBanner from '@/components/account/QuotaAlertBanner';
+
 
 const AppShell = ({ children, title }: { children: React.ReactNode; title?: string }) => {
   return (
@@ -18,8 +20,12 @@ const AppShell = ({ children, title }: { children: React.ReactNode; title?: stri
       </header>
 
       <main className="w-full flex-1 overflow-x-hidden pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
+        <div className="px-3 pt-3 md:px-4">
+          <QuotaAlertBanner />
+        </div>
         {children}
       </main>
+
 
       <MobileNav />
     </div>

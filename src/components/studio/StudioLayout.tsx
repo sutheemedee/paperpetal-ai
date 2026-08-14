@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Flower2, PanelLeft, Sliders } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useDevice } from '@/hooks/use-device';
+import QuotaAlertBanner from '@/components/account/QuotaAlertBanner';
 import { DesktopNav, MobileNav } from './nav';
 
 interface PanelSpec {
@@ -72,7 +73,12 @@ const StudioLayout = ({ title, subtitle, left, right, headerActions, children }:
         </div>
       </header>
 
+      <div className="shrink-0 px-3 pt-2 empty:hidden md:px-4">
+        <QuotaAlertBanner compact />
+      </div>
+
       <div className="flex min-h-0 flex-1">
+
         {showLeftInline && (
           <aside className="hidden w-64 shrink-0 overflow-y-auto border-r border-border bg-secondary/60 p-3 xl:w-72 lg:block">
             <h2 className="mb-2 px-1 text-[11px] font-ui font-bold uppercase tracking-wide text-muted-foreground">

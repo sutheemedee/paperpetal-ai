@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthProvider';
 import { METRIC_LABEL, PlanEntitlements, UsageMetric, usageRatio, usageTone } from '@/lib/plans';
 import UpgradeModal, { UpgradeReason } from '@/components/account/UpgradeModal';
+import QuotaAlertWatcher from '@/components/account/QuotaAlertWatcher';
 
 interface ConsumeInput {
   metric: UsageMetric;
@@ -158,6 +159,7 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
   return (
     <EntitlementsContext.Provider value={value}>
       {children}
+      <QuotaAlertWatcher />
       <UpgradeModal reason={reason} onClose={() => setReason(null)} />
     </EntitlementsContext.Provider>
   );
