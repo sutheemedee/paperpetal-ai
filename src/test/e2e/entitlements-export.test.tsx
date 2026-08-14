@@ -120,7 +120,8 @@ describe('export gating by plan', () => {
 
     await click('export-epub');
     expect(results).toContain('blocked:feature:epub');
-    await waitFor(() => expect(screen.getByText(/อัปเกรด/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/ส่งออก epub ใช้ได้ในแผนที่สูงขึ้น/)).toBeInTheDocument());
+    expect((await screen.findAllByText(/อัปเกรด/)).length).toBeGreaterThan(0);
     view.unmount();
   });
 
