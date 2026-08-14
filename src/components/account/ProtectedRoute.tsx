@@ -34,7 +34,15 @@ export const ProtectedRoute = ({ children, adminOnly }: { children: React.ReactN
   if (profile && !profile.onboarded && location.pathname !== '/onboarding') {
     return <Navigate to="/onboarding" replace />;
   }
-  return <>{children}</>;
+  return (
+    <>
+      <Helmet>
+        <title>{`${APP_TITLES[location.pathname] || 'Studio'} | PaperPetal AI`}</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
+      {children}
+    </>
+  );
 };
 
 export default ProtectedRoute;
