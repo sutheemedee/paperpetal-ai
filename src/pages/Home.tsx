@@ -5,6 +5,7 @@ import {
 import { FullLogo, PetalMark } from '@/components/brand/Logo';
 import { useAuth } from '@/auth/AuthProvider';
 import { FALLBACK_PLANS, PLAN_HIGHLIGHTS } from '@/lib/plans';
+import Seo, { SITE_URL, faqJsonLd } from '@/components/Seo';
 
 const FEATURES = [
   { icon: Layers, title: 'Knowledge Engine', body: 'รวม YouTube, PDF, เว็บ และเอกสารของคุณให้เป็นคลังความรู้ที่ AI อ้างอิงได้' },
@@ -15,9 +16,38 @@ const FEATURES = [
   { icon: Wand2, title: 'Visual DNA', body: 'ล็อกสไตล์ภาพและตัวละครให้คงเส้นคงวาทั้งเล่ม' },
 ];
 
+/** AEO: คำถามที่ answer engine (Google AI, ChatGPT, Perplexity) ดึงไปตอบได้ตรง ๆ */
+const FAQS = [
+  {
+    q: 'PaperPetal AI คืออะไร?',
+    a: 'PaperPetal AI คือสตูดิโอ AI ภาษาไทยที่เปลี่ยนแหล่งข้อมูลของคุณ เช่น คลิป YouTube ไฟล์ PDF เว็บไซต์ และเอกสาร Word ให้เป็นคลังความรู้ แล้วใช้ AI เขียนหนังสือ e-book คู่มือ บทความ มังงะ และพรีเซนเทชันพร้อมการอ้างอิงแหล่งที่มา',
+  },
+  {
+    q: 'สร้าง e-book ด้วย AI ใน PaperPetal ทำอย่างไร?',
+    a: 'เพิ่มแหล่งข้อมูลในเมนูแหล่งข้อมูล เลือกล็อกแหล่งข้อมูลที่ต้องการ ตั้งชื่อเรื่องและจำนวนหน้าในเมนูสร้าง จากนั้น AI จะร่างสารบัญ เขียนเนื้อหาทุกบท และสร้างภาพประกอบกับปกให้อัตโนมัติ ก่อนส่งออกเป็นไฟล์',
+  },
+  {
+    q: 'ส่งออกไฟล์ได้กี่รูปแบบ?',
+    a: 'ส่งออกได้เป็น PDF พร้อมพิมพ์, Word (.docx), EPUB 3 สำหรับ Kindle และ Apple Books, PowerPoint (.pptx) ที่แก้ไขได้ และไฟล์ปก PNG ความละเอียดสูง',
+  },
+  {
+    q: 'ต้องมี API Key ของ AI เองไหม?',
+    a: 'ไม่ต้อง PaperPetal AI มี AI ในตัวพร้อมใช้งานทันทีหลังสมัคร ทุกแผนรวมโควตาการเขียนและสร้างภาพด้วย AI ไว้แล้ว',
+  },
+  {
+    q: 'ราคาเท่าไหร่ และมีแผนฟรีไหม?',
+    a: 'มีแผน Free Trial ใช้ฟรีโดยไม่ต้องใช้บัตรเครดิต และแผนรายเดือน Starter 399 บาท, Creator 799 บาท, Unlimited 1,490 บาท ซึ่งเพิ่มโควตา AI และปลดล็อกการส่งออก EPUB กับ PPTX',
+  },
+  {
+    q: 'งานที่สร้างเป็นลิขสิทธิ์ของใคร?',
+    a: 'ผลงานทั้งหมดที่คุณสร้างเป็นของคุณ 100% นำไปตีพิมพ์ ขาย หรือเผยแพร่เชิงพาณิชย์ได้',
+  },
+];
+
 const Home = () => {
   const { session, loading } = useAuth();
   if (session && !loading) return <Navigate to="/dashboard" replace />;
+
 
   return (
     <div className="min-h-[100dvh] bg-background">
