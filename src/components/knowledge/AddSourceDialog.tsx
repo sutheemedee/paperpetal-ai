@@ -5,6 +5,8 @@ import { extractTextFromFile } from '@/utils/extractText';
 import { useKnowledge } from '@/knowledge/store';
 import { SourceType } from '@/knowledge/types';
 import { toast } from 'sonner';
+import { useAuth } from '@/auth/AuthProvider';
+import { useEntitlements } from '@/auth/useEntitlements';
 
 const TABS: { id: SourceType; label: string }[] = [
   { id: 'youtube', label: 'YouTube' },
@@ -14,7 +16,9 @@ const TABS: { id: SourceType; label: string }[] = [
 ];
 
 const AddSourceDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
-  const { addSource } = useKnowledge();
+  const { addSource, sources } = useKnowledge();
+  const { consume, requireFeature, openUpgrade } = useEntitlements();
+  const { account } = useAuth();
   const [tab, setTab] = useState<SourceType>('youtube');
   const [url, setUrl] = useState('');
   const [text, setText] = useState('');
@@ -22,6 +26,19 @@ const AddSourceDialog = ({ open, onOpenChange }: { open: boolean; onOpenChange: 
   const [busy, setBusy] = useState(false);
 
   const submit = async (payload: { sourceType: SourceType; url?: string; text?: string; title?: string }) => {
+    const maxSources = account?.entitlements?.sourcesPerProject ?? null;
+    if (maxSources !== null && sources.length >= maxSources) {
+      openUpgrade({
+        kind: 'quota',
+        title: 'คุณใช้จำนวนแหล่งข้อมูลครบตามแผนแล้ว',
+        detail: `แผนนี้รองรับ ${maxSources} แหล่งข้อมูลต่อโปรเจกต์ — อัปเกรดเพื่อเพิ่มแหล่งข้อมูล`,
+        planCode: account?.planCode,
+      });
+      return;
+    }
+    if (payload.sourceType === 'youtube' && !requireFeature('youtube', 'YouTube Knowledge')) return;
+    if (!(await consume({ metric: 'sourceProcessing', operation: `ingest_${payload.sourceType}` }))) return;
+
     setBusy(true);
     try {
       const s = await addSource(payload);

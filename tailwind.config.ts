@@ -14,9 +14,12 @@ export default {
     },
     extend: {
       fontFamily: {
-        heading: ['Playfair Display', 'serif'],
-        body: ['Lora', 'serif'],
-        ui: ['DM Sans', 'sans-serif'],
+        display: ['Sora', 'Noto Sans Thai', 'sans-serif'],
+        heading: ['Noto Sans Thai', 'Sora', 'sans-serif'],
+        body: ['Noto Sans Thai', 'sans-serif'],
+        ui: ['Noto Sans Thai', 'sans-serif'],
+        'book-heading': ['Playfair Display', 'serif'],
+        'book-body': ['Lora', 'serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -24,6 +27,14 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        elevated: "hsl(var(--surface-elevated))",
+        magenta: {
+          DEFAULT: "hsl(var(--magenta))",
+          foreground: "hsl(var(--magenta-foreground))",
+        },
+        highlight: "hsl(var(--highlight))",
+        info: "hsl(var(--info))",
+        success: "hsl(var(--success))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

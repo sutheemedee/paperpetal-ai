@@ -2,7 +2,10 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { supabase } from '@/integrations/supabase/client';
 import { KnowledgeNote, KnowledgeSource, SourceRole, SourceType } from './types';
 
-const KEY = 'paperpetal.knowledge.v1';
+import { useAuth } from '@/auth/AuthProvider';
+
+/** Per-user storage key so accounts on the same device never share knowledge. */
+const keyFor = (uid?: string | null) => `paperpetal.knowledge.v2.${uid ?? 'guest'}`;
 
 interface Persisted {
   projectName: string;
@@ -18,9 +21,9 @@ const empty: Persisted = {
   notes: [],
 };
 
-const load = (): Persisted => {
+const load = (uid?: string | null): Persisted => {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(keyFor(uid));
     return raw ? { ...empty, ...JSON.parse(raw) } : empty;
   } catch {
     return empty;
@@ -50,11 +53,18 @@ interface Ctx extends Persisted {
 const KnowledgeContext = createContext<Ctx | null>(null);
 
 export const KnowledgeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [state, setState] = useState<Persisted>(load);
+  const { user } = useAuth();
+  const uid = user?.id ?? null;
+  const [state, setState] = useState<Persisted>(() => load(uid));
+
+  // Swap the whole store when the signed-in account changes (strict data isolation).
+  useEffect(() => {
+    setState(load(uid));
+  }, [uid]);
 
   useEffect(() => {
-    localStorage.setItem(KEY, JSON.stringify(state));
-  }, [state]);
+    localStorage.setItem(keyFor(uid), JSON.stringify(state));
+  }, [state, uid]);
 
   const addSource = useCallback(async (input: AddSourceInput) => {
     const { data, error } = await supabase.functions.invoke('ingest-source', {

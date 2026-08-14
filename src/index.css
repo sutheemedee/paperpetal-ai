@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800;900&family=Lora:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=Playfair+Display:wght@400;600;700;800;900&family=Lora:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,51 +6,68 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
+    /* Premium midnight surface system */
+    --background: 230 44% 6%;
+    --foreground: 0 0% 100%;
 
-    --card: 54 100% 95%;
-    --card-foreground: 0 0% 10%;
+    --card: 226 36% 11%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --surface-elevated: 226 40% 16%;
 
-    --primary: 48 100% 50%;
-    --primary-foreground: 0 0% 0%;
+    --popover: 226 40% 13%;
+    --popover-foreground: 0 0% 100%;
 
-    --secondary: 54 100% 97%;
-    --secondary-foreground: 0 0% 10%;
+    --primary: 252 100% 68%;
+    --primary-foreground: 0 0% 100%;
 
-    --muted: 54 100% 97%;
-    --muted-foreground: 0 0% 33%;
+    --secondary: 226 36% 14%;
+    --secondary-foreground: 0 0% 100%;
 
-    --accent: 45 100% 88%;
-    --accent-foreground: 0 0% 10%;
+    --magenta: 333 100% 70%;
+    --magenta-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --muted: 226 30% 16%;
+    --muted-foreground: 220 22% 78%;
 
-    --border: 43 100% 82%;
-    --input: 43 100% 82%;
-    --ring: 48 100% 50%;
+    --accent: 226 40% 18%;
+    --accent-foreground: 0 0% 100%;
 
-    --radius: 0.75rem;
+    --highlight: 38 100% 56%;
+    --info: 187 82% 53%;
+    --success: 160 84% 39%;
 
-    --sidebar-background: 54 100% 97%;
-    --sidebar-foreground: 0 0% 10%;
-    --sidebar-primary: 48 100% 50%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 54 100% 95%;
-    --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 43 100% 82%;
-    --sidebar-ring: 48 100% 50%;
+    --destructive: 0 84% 62%;
+    --destructive-foreground: 0 0% 100%;
 
-    --font-heading: 'Playfair Display', serif;
-    --font-body: 'Lora', serif;
-    --font-ui: 'DM Sans', sans-serif;
+    --border: 225 25% 24%;
+    --input: 225 25% 24%;
+    --ring: 252 100% 68%;
 
-    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.10);
-    --shadow-soft: 0 2px 12px rgba(0, 0, 0, 0.06);
+    --radius: 0.9rem;
+
+    --sidebar-background: 228 40% 8%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 252 100% 68%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 226 36% 14%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 225 25% 20%;
+    --sidebar-ring: 252 100% 68%;
+
+    --font-display: 'Sora', 'Noto Sans Thai', sans-serif;
+    --font-heading: 'Noto Sans Thai', 'Sora', sans-serif;
+    --font-body: 'Noto Sans Thai', sans-serif;
+    --font-ui: 'Noto Sans Thai', sans-serif;
+    /* serif families remain available for book interiors */
+    --font-book-heading: 'Playfair Display', serif;
+    --font-book-body: 'Lora', serif;
+
+    --gradient-ai: linear-gradient(135deg, hsl(252 100% 68%), hsl(333 100% 70%));
+    --gradient-brand: linear-gradient(120deg, hsl(212 100% 60%), hsl(252 100% 68%) 45%, hsl(333 100% 70%) 78%, hsl(38 100% 56%));
+    --shadow-card: 0 18px 48px -24px rgba(4, 6, 20, 0.9);
+    --shadow-soft: 0 6px 20px -10px rgba(4, 6, 20, 0.8);
+    --shadow-glow: 0 0 40px -12px hsl(252 100% 68% / 0.55);
   }
 }
 
@@ -61,12 +78,12 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    color-scheme: dark;
   }
 
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-ui);
-    /* no horizontal page overflow on any device */
     overflow-x: hidden;
     text-wrap: pretty;
   }
@@ -76,12 +93,10 @@
     text-wrap: balance;
   }
 
-  /* keep tap targets comfortable and remove hover-only reliance on touch */
   button, a, select, [role='button'] {
     touch-action: manipulation;
   }
 
-  /* readable form text on phones (prevents iOS zoom-on-focus) */
   @media (max-width: 767px) {
     input, select, textarea {
       font-size: 16px;
@@ -93,6 +108,25 @@
   }
 }
 
+@layer utilities {
+  .text-gradient-ai {
+    background: var(--gradient-ai);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .bg-gradient-ai {
+    background: var(--gradient-ai);
+  }
+  .bg-gradient-brand {
+    background: var(--gradient-brand);
+  }
+  .glass-panel {
+    background: hsl(var(--card) / 0.85);
+    backdrop-filter: blur(14px);
+  }
+}
+
 /* safe-area helpers */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
@@ -101,14 +135,13 @@
   padding-top: env(safe-area-inset-top);
 }
 
-
 @keyframes shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
 .shimmer-bg {
-  background: linear-gradient(90deg, hsl(54 100% 95%) 25%, hsl(43 100% 88%) 50%, hsl(54 100% 95%) 75%);
+  background: linear-gradient(90deg, hsl(226 36% 13%) 25%, hsl(226 40% 20%) 50%, hsl(226 36% 13%) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }

@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { generateImage } from '@/utils/imageGen';
 import { exportToPptx, Deck } from '@/utils/exportPptx';
 import { toast } from 'sonner';
+import { useEntitlements } from '@/auth/useEntitlements';
 
 const SLIDE_COUNTS = [10, 20, 30, 40, 80];
 const PRESETS = ['Business', 'Technology', 'Teaching', 'Course', 'Pitch Deck', 'Research', 'Academic', 'Workshop', 'Keynote', 'Marketing', 'Minimal', 'Dark Tech', 'Children'];
@@ -19,6 +20,7 @@ const SLIDE_H = 720;
 const Present = () => {
   const { activeSources, chatPayloadSources } = useKnowledge();
   const { isMobile } = useDevice();
+  const { consume, check, requireFeature } = useEntitlements();
   const [topic, setTopic] = useState('');
   const [slideCount, setSlideCount] = useState(20);
   const [preset, setPreset] = useState('Teaching');
@@ -34,6 +36,7 @@ const Present = () => {
 
   const generate = async () => {
     if (!topic.trim()) return toast.error('กรุณากรอกหัวข้อพรีเซนเทชัน');
+    if (!(await consume({ metric: 'slides', quantity: slideCount, operation: 'generate_presentation' }))) return;
     setBusy('deck');
     setDeck(null);
     try {
@@ -56,6 +59,9 @@ const Present = () => {
 
   const illustrate = async () => {
     if (!deck) return;
+    const pending = deck.slides.filter((s: any) => s.visual?.prompt && s.visual.kind !== 'none' && !s.imageUrl).length;
+    if (!pending) return toast.info('ทุกสไลด์มีภาพประกอบแล้ว');
+    if (!(await consume({ metric: 'aiImages', quantity: pending, operation: 'illustrate_slides' }))) return;
     setBusy('images');
     const slides = [...deck.slides];
     for (let i = 0; i < slides.length; i++) {
@@ -75,9 +81,12 @@ const Present = () => {
 
   const exportPptx = async () => {
     if (!deck) return;
+    if (!requireFeature('pptx', 'ส่งออก PowerPoint (.pptx)')) return;
+    if (!(await check('exports'))) return;
     setBusy('export');
     try {
       await exportToPptx(deck, `${deck.title || 'presentation'}.pptx`);
+      await consume({ metric: 'exports', operation: 'export_presentation', format: 'pptx' });
       toast.success('ดาวน์โหลด PPTX (แก้ไขได้) สำเร็จ');
     } catch (e: any) {
       toast.error(e?.message || 'ส่งออกไม่สำเร็จ');
