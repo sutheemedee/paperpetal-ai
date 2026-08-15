@@ -1,3 +1,4 @@
+import { useAuth } from '@/auth/AuthProvider';
 import { Link, useLocation } from 'react-router-dom';
 import {
   BookOpen,
@@ -83,6 +84,7 @@ export const DesktopNav = () => {
 
 /** Persistent desktop sidebar — 248px, sidebar surface, subtle brand selection. */
 export const SidebarNav = () => {
+  const { account } = useAuth();
   const { pathname } = useLocation();
   return (
     <nav className="flex flex-col gap-5 p-3">
@@ -114,6 +116,7 @@ export const SidebarNav = () => {
           })}
         </div>
       ))}
+      {account?.planCode !== 'unlimited' && (
       <Link
         to="/pricing"
         className="press mx-1 mt-1 rounded-xl border border-border bg-gradient-subtle p-3 text-xs font-ui text-secondary-foreground hover:border-strong"
@@ -123,6 +126,7 @@ export const SidebarNav = () => {
         </span>
         <span className="mt-1 block text-muted-foreground">ปลดล็อกโควต้า AI และการส่งออกทุกรูปแบบ</span>
       </Link>
+      )}
       <Link
         to="/billing"
         className="press mx-1 flex min-h-11 items-center gap-2.5 rounded-xl px-3 text-sm font-ui font-semibold text-muted-foreground hover:bg-surface-hover hover:text-foreground"
