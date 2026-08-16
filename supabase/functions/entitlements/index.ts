@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { abnormalUsage, admin, commitUsage, corsHeaders, json, loadAccount, requireUser } from '../_shared/entitlements.ts';
+import { abnormalUsage, admin, commitUsage, corsHeaders, isAdmin, json, loadAccount, requireUser } from '../_shared/entitlements.ts';
 
 type Metric = 'aiPages' | 'aiImages' | 'slides' | 'sourceProcessing' | 'exports' | 'research';
 const METRICS: Metric[] = ['aiPages', 'aiImages', 'slides', 'sourceProcessing', 'exports', 'research'];
