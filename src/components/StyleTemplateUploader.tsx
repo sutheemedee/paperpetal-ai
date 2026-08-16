@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { extractTextFromFile } from '@/utils/extractText';
 import { analyzeWritingStyle } from '@/utils/analyzeStyle';
+import { toast } from 'sonner';
 import type { StyleProfile } from '@/utils/generateBook';
 
 interface StyleTemplateUploaderProps {
