@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { edgeErrorMessage } from '@/utils/fnError';
 import { KnowledgeNote, KnowledgeSource, SourceRole, SourceType } from './types';
 
 import { useAuth } from '@/auth/AuthProvider';
