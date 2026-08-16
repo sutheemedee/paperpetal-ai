@@ -23,8 +23,9 @@ const StyleTemplateUploader = ({ onStyleExtracted }: StyleTemplateUploaderProps)
       const profile = await analyzeWritingStyle(text);
       setStyleProfile(profile);
       onStyleExtracted(profile);
-    } catch {
+    } catch (err: any) {
       setStyleProfile(null);
+      toast.error(err?.message || 'วิเคราะห์สไตล์การเขียนไม่สำเร็จ');
     }
     setAnalyzing(false);
   };
