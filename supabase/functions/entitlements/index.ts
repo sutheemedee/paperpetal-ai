@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { abnormalUsage, admin, commitUsage, corsHeaders, json, loadAccount, requireUser } from '../_shared/entitlements.ts';
+import { abnormalUsage, admin, commitUsage, corsHeaders, isAdmin, json, loadAccount, requireUser } from '../_shared/entitlements.ts';
 
 type Metric = 'aiPages' | 'aiImages' | 'slides' | 'sourceProcessing' | 'exports' | 'research';
 const METRICS: Metric[] = ['aiPages', 'aiImages', 'slides', 'sourceProcessing', 'exports', 'research'];
@@ -28,13 +28,16 @@ serve(async (req) => {
       if (!METRICS.includes(metric)) return json({ error: 'invalid_metric' }, 400);
       const quantity = Math.max(1, Math.min(500, Number(body.quantity ?? 1)));
 
+      // Operator accounts (unlimited plan or admin role) bypass every cap and guard.
+      const unrestricted = account.planCode === 'unlimited' || (await isAdmin(user.id));
+
       const limit = limitFor(account.entitlements, metric);
       const bonus = account.bonus[metric] ?? 0;
       const used = account.counters[metric] ?? 0;
-      const effectiveLimit = limit === null ? null : limit + bonus;
+      const effectiveLimit = unrestricted || limit === null ? null : limit + bonus;
 
       // Free-trial style daily export cap
-      if (metric === 'exports') {
+      if (!unrestricted && metric === 'exports') {
         const perDay = limitFor(account.entitlements, 'exportsPerDay' as Metric);
         if (perDay !== null && account.exportsToday >= perDay) {
           return json({
@@ -60,7 +63,7 @@ serve(async (req) => {
         }, 200);
       }
 
-      if (await abnormalUsage(user.id)) {
+      if (!unrestricted && (await abnormalUsage(user.id))) {
         return json({ allowed: false, reason: 'rate_limited', metric, account }, 200);
       }
 
