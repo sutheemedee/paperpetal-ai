@@ -9,6 +9,7 @@ import { generateImage } from '@/utils/imageGen';
 import { exportToPptx, Deck } from '@/utils/exportPptx';
 import { toast } from 'sonner';
 import { useEntitlements } from '@/auth/useEntitlements';
+import { edgeErrorMessage } from '@/utils/fnError';
 
 const SLIDE_COUNTS = [10, 20, 30, 40, 80];
 const PRESETS = ['Business', 'Technology', 'Teaching', 'Course', 'Pitch Deck', 'Research', 'Academic', 'Workshop', 'Keynote', 'Marketing', 'Minimal', 'Dark Tech', 'Children'];
@@ -46,7 +47,7 @@ const Present = () => {
           language: 'thai', sources: chatPayloadSources(),
         },
       });
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(await edgeErrorMessage(error, 'สร้างพรีเซนเทชันไม่สำเร็จ'));
       if (data?.error) throw new Error(data.error);
       setDeck(data);
       setCurrent(0);

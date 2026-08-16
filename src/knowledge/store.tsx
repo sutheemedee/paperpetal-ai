@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { edgeErrorMessage } from '@/utils/fnError';
 import { KnowledgeNote, KnowledgeSource, SourceRole, SourceType } from './types';
 
 import { useAuth } from '@/auth/AuthProvider';
@@ -76,7 +77,7 @@ export const KnowledgeProvider = ({ children }: { children: React.ReactNode }) =
         language: 'thai',
       },
     });
-    if (error) throw new Error(error.message || 'ingest failed');
+    if (error) throw new Error(await edgeErrorMessage(error, 'เพิ่มแหล่งข้อมูลไม่สำเร็จ'));
     if (data?.error) throw new Error(data.error);
 
     const source: KnowledgeSource = {

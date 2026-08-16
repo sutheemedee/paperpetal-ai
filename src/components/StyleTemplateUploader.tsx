@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { extractTextFromFile } from '@/utils/extractText';
 import { analyzeWritingStyle } from '@/utils/analyzeStyle';
+import { toast } from 'sonner';
 import type { StyleProfile } from '@/utils/generateBook';
 
 interface StyleTemplateUploaderProps {
@@ -23,8 +24,9 @@ const StyleTemplateUploader = ({ onStyleExtracted }: StyleTemplateUploaderProps)
       const profile = await analyzeWritingStyle(text);
       setStyleProfile(profile);
       onStyleExtracted(profile);
-    } catch {
+    } catch (err: any) {
       setStyleProfile(null);
+      toast.error(err?.message || 'วิเคราะห์สไตล์การเขียนไม่สำเร็จ');
     }
     setAnalyzing(false);
   };

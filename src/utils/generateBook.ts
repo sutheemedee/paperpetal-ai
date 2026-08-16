@@ -10,6 +10,7 @@ export interface StyleProfile {
 }
 
 import { supabase } from '@/integrations/supabase/client';
+import { edgeErrorMessage } from './fnError';
 
 export const generateBook = async (
   title: string,
@@ -19,24 +20,20 @@ export const generateBook = async (
   sources: any[] = [],
   sourceMode: string = 'source_ai',
 ): Promise<any> => {
-  try {
-    const { data, error } = await supabase.functions.invoke('generate-book', {
-      body: { title, pageCount, language, styleProfile, sources, sourceMode },
-    });
+  const { data, error } = await supabase.functions.invoke('generate-book', {
+    body: { title, pageCount, language, styleProfile, sources, sourceMode },
+  });
 
-    if (error) {
-      console.error('Generate book error:', error);
-      throw new Error(error.message || 'Failed to generate book');
-    }
-
-    if (data?.error) {
-      console.error('Generate book API error:', data.error);
-      throw new Error(data.error);
-    }
-
-    return data;
-  } catch (err) {
-    console.error('Generate book error:', err);
-    throw err;
+  if (error) {
+    const message = await edgeErrorMessage(error, 'สร้างหนังสือไม่สำเร็จ กรุณาลองใหม่');
+    console.error('Generate book error:', message);
+    throw new Error(message);
   }
+
+  if (data?.error) {
+    console.error('Generate book API error:', data.error);
+    throw new Error(data.error);
+  }
+
+  return data;
 };
