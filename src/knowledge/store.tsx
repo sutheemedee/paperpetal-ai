@@ -76,7 +76,7 @@ export const KnowledgeProvider = ({ children }: { children: React.ReactNode }) =
         language: 'thai',
       },
     });
-    if (error) throw new Error(error.message || 'ingest failed');
+    if (error) throw new Error(await edgeErrorMessage(error, 'เพิ่มแหล่งข้อมูลไม่สำเร็จ'));
     if (data?.error) throw new Error(data.error);
 
     const source: KnowledgeSource = {

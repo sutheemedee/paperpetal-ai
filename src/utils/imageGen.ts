@@ -1,4 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
+import { edgeErrorMessage } from './fnError';
+
+/** ข้อความผิดพลาดล่าสุดจากการสร้างภาพ เพื่อให้ UI แจ้งสาเหตุที่แท้จริงได้ */
+export let lastImageError = '';
 
 export const generateImage = async (prompt: string): Promise<string> => {
   try {
@@ -7,12 +11,21 @@ export const generateImage = async (prompt: string): Promise<string> => {
     });
 
     if (error) {
-      console.error('Image generation error:', error);
+      lastImageError = await edgeErrorMessage(error, 'สร้างภาพประกอบไม่สำเร็จ');
+      console.error('Image generation error:', lastImageError);
       return '';
     }
 
+    if (data?.error) {
+      lastImageError = String(data.error);
+      console.error('Image generation error:', lastImageError);
+      return '';
+    }
+
+    lastImageError = '';
     return data?.imageUrl || '';
-  } catch (err) {
+  } catch (err: any) {
+    lastImageError = err?.message || 'สร้างภาพประกอบไม่สำเร็จ';
     console.error('Image generation failed:', err);
     return '';
   }

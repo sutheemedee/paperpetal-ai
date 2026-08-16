@@ -46,7 +46,7 @@ const Present = () => {
           language: 'thai', sources: chatPayloadSources(),
         },
       });
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(await edgeErrorMessage(error, 'สร้างพรีเซนเทชันไม่สำเร็จ'));
       if (data?.error) throw new Error(data.error);
       setDeck(data);
       setCurrent(0);
