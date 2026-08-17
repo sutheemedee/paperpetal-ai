@@ -21,7 +21,7 @@ const UsageChip = () => {
       <span className="flex items-center gap-2">
         <span className="text-xs font-ui font-bold tabular-nums">
           {used.toLocaleString()}
-          <span className="text-muted-foreground"> / {limit === null ? 'Fair Use' : limit.toLocaleString()}</span>
+          <span className="text-muted-foreground"> / {unlimited ? '∞' : limit === null ? 'Fair Use' : limit.toLocaleString()}</span>
         </span>
         <span className="h-1.5 w-12 overflow-hidden rounded-full bg-surface-hover">
           <span className="block h-full rounded-full bg-gradient-paperpetal" style={{ width: `${pct}%` }} />
