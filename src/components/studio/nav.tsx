@@ -9,6 +9,7 @@ import {
   Layers,
   MessageCircle,
   Plus,
+  LayoutTemplate,
   Presentation,
   Settings,
   Sparkles,
@@ -18,7 +19,7 @@ import {
 export const NAV = [
   { to: '/dashboard', label: 'หน้าหลัก', short: 'Home', icon: LayoutDashboard },
   { to: '/knowledge', label: 'แหล่งข้อมูล', short: 'Sources', icon: Layers },
-  { to: '/book', label: 'สร้าง', short: 'Create', icon: Plus, primary: true },
+  { to: '/create', label: 'สร้าง', short: 'Create', icon: Plus, primary: true },
   { to: '/chat', label: 'AI Chat', short: 'Chat', icon: MessageCircle },
   { to: '/projects', label: 'โปรเจกต์', short: 'Projects', icon: Presentation },
 ];
@@ -39,6 +40,8 @@ export const SIDEBAR_GROUPS: {
   {
     label: 'Create',
     items: [
+      { to: '/create', label: 'สร้างงานใหม่', icon: Plus },
+      { to: '/templates', label: 'เทมเพลต', icon: LayoutTemplate },
       { to: '/book', label: 'เขียนหนังสือ', icon: BookOpen },
       { to: '/present', label: 'พรีเซนต์', icon: Presentation },
       { to: '/projects', label: 'โปรเจกต์', icon: Images },
