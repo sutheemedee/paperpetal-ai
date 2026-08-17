@@ -23,7 +23,9 @@ interface Ctx {
   /** Feature gate from the plan entitlements. */
   can: (feature: keyof PlanEntitlements) => boolean;
   requireFeature: (feature: keyof PlanEntitlements, label: string) => boolean;
-  usage: (metric: UsageMetric) => { used: number; limit: number | null; ratio: number; tone: string; label: string };
+  usage: (metric: UsageMetric) => { used: number; limit: number | null; ratio: number; tone: string; label: string; unlimited: boolean };
+  /** True for admin / unlimited operator accounts — no credit caps at all. */
+  unrestricted: boolean;
   track: (event: string, props?: Record<string, unknown>) => void;
   openUpgrade: (reason: UpgradeReason) => void;
 }
@@ -31,8 +33,10 @@ interface Ctx {
 const EntitlementsContext = createContext<Ctx | null>(null);
 
 export const EntitlementsProvider = ({ children }: { children: React.ReactNode }) => {
-  const { account, setAccount, user } = useAuth();
+  const { account, setAccount, user, isAdmin } = useAuth();
   const [reason, setReason] = useState<UpgradeReason | null>(null);
+  /** Operator accounts (admin role or unlimited plan) ignore every credit/quota rule. */
+  const unrestricted = isAdmin || account?.planCode === 'unlimited';
 
   const call = useCallback(async (body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke('entitlements', { body });
@@ -72,6 +76,11 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
 
   const consume = useCallback(
     async (input: ConsumeInput) => {
+      if (unrestricted) {
+        // Log usage in the background but never block operator accounts.
+        call({ action: 'consume', ...input, quantity: input.quantity ?? 1 }).catch(() => {});
+        return true;
+      }
       if (!user) {
         openUpgrade({ kind: 'auth', title: 'เข้าสู่ระบบเพื่อใช้ AI', detail: 'สร้างบัญชีฟรีเพื่อเริ่มใช้งาน PaperPetal AI' });
         return false;
@@ -88,11 +97,12 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
         return false;
       }
     },
-    [user, call, account, setAccount, handleBlocked, openUpgrade],
+    [user, call, account, setAccount, handleBlocked, openUpgrade, unrestricted],
   );
 
   const check = useCallback(
     async (metric: UsageMetric, quantity = 1) => {
+      if (unrestricted) return true;
       if (!user) {
         openUpgrade({ kind: 'auth', title: 'เข้าสู่ระบบเพื่อใช้ AI', detail: 'สร้างบัญชีฟรีเพื่อเริ่มใช้งาน PaperPetal AI' });
         return false;
@@ -109,12 +119,12 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
         return false;
       }
     },
-    [user, call, account, setAccount, handleBlocked, openUpgrade],
+    [user, call, account, setAccount, handleBlocked, openUpgrade, unrestricted],
   );
 
   const can = useCallback(
-    (feature: keyof PlanEntitlements) => account?.entitlements?.[feature] === true,
-    [account],
+    (feature: keyof PlanEntitlements) => unrestricted || account?.entitlements?.[feature] === true,
+    [account, unrestricted],
   );
 
   const requireFeature = useCallback(
@@ -134,13 +144,16 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
   const usage = useCallback(
     (metric: UsageMetric) => {
       const used = account?.counters?.[metric] ?? 0;
+      if (unrestricted) {
+        return { used, limit: null, ratio: 0, tone: 'ok', label: METRIC_LABEL[metric], unlimited: true };
+      }
       const base = (account?.entitlements as any)?.[metric] ?? null;
       const bonus = account?.bonus?.[metric] ?? 0;
       const limit = base === null || base === undefined ? null : Number(base) + bonus;
       const ratio = usageRatio(used, limit);
-      return { used, limit, ratio, tone: usageTone(ratio), label: METRIC_LABEL[metric] };
+      return { used, limit, ratio, tone: usageTone(ratio), label: METRIC_LABEL[metric], unlimited: false };
     },
-    [account],
+    [account, unrestricted],
   );
 
   const track = useCallback(
@@ -152,8 +165,8 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
   );
 
   const value = useMemo<Ctx>(
-    () => ({ consume, check, can, requireFeature, usage, track, openUpgrade }),
-    [consume, check, can, requireFeature, usage, track, openUpgrade],
+    () => ({ consume, check, can, requireFeature, usage, track, openUpgrade, unrestricted: !!unrestricted }),
+    [consume, check, can, requireFeature, usage, track, openUpgrade, unrestricted],
   );
 
   return (

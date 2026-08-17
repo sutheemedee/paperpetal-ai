@@ -9,8 +9,8 @@ import { useAuth } from '@/auth/AuthProvider';
 
 const UsageChip = () => {
   const { usage } = useEntitlements();
-  const { used, limit, ratio } = usage('aiPages');
-  const pct = Math.min(100, Math.round(ratio * 100));
+  const { used, limit, ratio, unlimited } = usage('aiPages');
+  const pct = unlimited ? 100 : Math.min(100, Math.round(ratio * 100));
   return (
     <Link
       to="/billing"
@@ -21,7 +21,7 @@ const UsageChip = () => {
       <span className="flex items-center gap-2">
         <span className="text-xs font-ui font-bold tabular-nums">
           {used.toLocaleString()}
-          <span className="text-muted-foreground"> / {limit === null ? 'Fair Use' : limit.toLocaleString()}</span>
+          <span className="text-muted-foreground"> / {unlimited ? '∞' : limit === null ? 'Fair Use' : limit.toLocaleString()}</span>
         </span>
         <span className="h-1.5 w-12 overflow-hidden rounded-full bg-surface-hover">
           <span className="block h-full rounded-full bg-gradient-paperpetal" style={{ width: `${pct}%` }} />
@@ -32,7 +32,7 @@ const UsageChip = () => {
 };
 
 const AppShell = ({ children, title }: { children: React.ReactNode; title?: string }) => {
-  const { user, account } = useAuth();
+  const { user, account, isAdmin } = useAuth();
 
   return (
     <div className="flex min-h-[100dvh] bg-background">
@@ -71,7 +71,7 @@ const AppShell = ({ children, title }: { children: React.ReactNode; title?: stri
               <Search className="h-4 w-4" />
             </Link>
             {user && <UsageChip />}
-            {user && account?.planCode !== 'unlimited' && (
+            {user && !(isAdmin || account?.planCode === 'unlimited') && (
               <Link
                 to="/pricing"
                 className="press hidden min-h-10 items-center gap-1.5 rounded-xl bg-gradient-paperpetal px-3 text-xs font-ui font-bold text-primary-foreground shadow-[var(--shadow-glow)] sm:flex"

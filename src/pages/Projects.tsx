@@ -15,7 +15,7 @@ interface ProjectRow {
 }
 
 const Projects = () => {
-  const { account, refresh } = useAuth();
+  const { account, refresh, isAdmin } = useAuth();
   const [rows, setRows] = useState<ProjectRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [showArchived, setShowArchived] = useState(false);
@@ -47,7 +47,8 @@ const Projects = () => {
   };
 
   const visible = rows.filter(r => r.archived === showArchived);
-  const limit = account?.entitlements?.projects ?? null;
+  const unrestricted = isAdmin || account?.planCode === 'unlimited';
+  const limit = unrestricted ? null : (account?.entitlements?.projects ?? null);
 
   return (
     <AppShell title="โปรเจกต์ของฉัน">
@@ -57,7 +58,7 @@ const Projects = () => {
             <h1 className="font-display text-xl font-extrabold md:text-2xl">โปรเจกต์ของฉัน</h1>
             <p className="text-xs font-ui text-muted-foreground">
               ใช้ไป {rows.filter(r => !r.archived).length}
-              {limit === null ? ' โปรเจกต์ (ไม่จำกัด)' : ` / ${limit} โปรเจกต์`}
+              {limit === null ? ' โปรเจกต์ / ∞ (ไม่จำกัด)' : ` / ${limit} โปรเจกต์`}
             </p>
           </div>
           <div className="flex gap-2">

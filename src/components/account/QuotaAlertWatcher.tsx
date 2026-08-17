@@ -10,12 +10,13 @@ import { alertMessage, alertTitle, collectQuotaAlerts, isNewAlert, markAlertSeen
  * metric/level/billing-period) as soon as a quota threshold is crossed.
  */
 const QuotaAlertWatcher = () => {
-  const { account, user } = useAuth();
+  const { account, user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const emailing = useRef(false);
 
   useEffect(() => {
     if (!user || !account) return;
+    if (isAdmin || account.planCode === 'unlimited') return; // operator accounts: unlimited (∞)
     const period = account.periodStart;
     const fresh = collectQuotaAlerts(account).filter(a => isNewAlert(user.id, period, a));
     if (fresh.length === 0) return;
@@ -46,7 +47,7 @@ const QuotaAlertWatcher = () => {
       .finally(() => {
         emailing.current = false;
       });
-  }, [account, user, navigate]);
+  }, [account, user, navigate, isAdmin]);
 
   return null;
 };

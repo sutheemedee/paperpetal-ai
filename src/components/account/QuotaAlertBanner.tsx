@@ -19,8 +19,9 @@ const TONE: Record<QuotaAlert['level'], string> = {
 
 /** Persistent in-app quota warning with a one-tap upgrade path. */
 const QuotaAlertBanner = ({ compact }: { compact?: boolean }) => {
-  const { account, user } = useAuth();
-  const alerts = useMemo(() => collectQuotaAlerts(account), [account]);
+  const { account, user, isAdmin } = useAuth();
+  const unrestricted = isAdmin || account?.planCode === 'unlimited';
+  const alerts = useMemo(() => (unrestricted ? [] : collectQuotaAlerts(account)), [account, unrestricted]);
   const top = alerts[0];
   const signature = alerts.map(a => `${a.metric}:${a.level}`).join(',');
   const uid = user?.id ?? '';
