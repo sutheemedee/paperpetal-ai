@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +13,17 @@ const SignUp = () => {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const plan = searchParams.get('plan');
+  const template = searchParams.get('template');
+  const showcase = searchParams.get('showcase');
+  const next = template ? `/create?template=${encodeURIComponent(template)}` : '/onboarding';
+
+  useEffect(() => {
+    if (plan) sessionStorage.setItem('kivora.selectedPlan', plan);
+    if (template) sessionStorage.setItem('kivora.selectedTemplate', template);
+    if (showcase) sessionStorage.setItem('kivora.sourceShowcase', showcase);
+  }, [plan, template, showcase]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,8 +37,13 @@ const SignUp = () => {
       email: email.trim(),
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/verify-email`,
-        data: { display_name: name.trim() },
+        emailRedirectTo: `${window.location.origin}/auth/verify-email${window.location.search}`,
+        data: {
+          display_name: name.trim(),
+          selected_plan: plan ?? undefined,
+          selected_template: template ?? undefined,
+          source_showcase: showcase ?? undefined,
+        },
       },
     });
     setBusy(false);
@@ -36,7 +52,7 @@ const SignUp = () => {
       return;
     }
     if (data.session) {
-      navigate('/onboarding', { replace: true });
+      navigate(next, { replace: true });
       return;
     }
     setSent(true);
@@ -61,7 +77,7 @@ const SignUp = () => {
           <p className="mt-1 text-xs font-ui text-muted-foreground">ไม่ต้องใช้บัตรเครดิต</p>
 
           <div className="mt-4">
-            <GoogleButton next="/onboarding" />
+            <GoogleButton next={next} />
           </div>
 
           <div className="my-4 flex items-center gap-3 text-[11px] font-ui uppercase tracking-wide text-muted-foreground">
@@ -111,7 +127,7 @@ const SignUp = () => {
           </form>
 
           <p className="mt-4 text-xs font-ui text-muted-foreground">
-            มีบัญชีอยู่แล้ว? <Link to="/auth/sign-in" className="font-bold text-primary">เข้าสู่ระบบ</Link>
+            มีบัญชีอยู่แล้ว? <Link to={`/auth/sign-in${window.location.search}`} className="font-bold text-primary">เข้าสู่ระบบ</Link>
           </p>
         </>
       )}

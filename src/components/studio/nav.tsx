@@ -41,7 +41,7 @@ export const SIDEBAR_GROUPS: {
     label: 'Create',
     items: [
       { to: '/create', label: 'สร้างงานใหม่', icon: Plus },
-      { to: '/templates', label: 'เทมเพลต', icon: LayoutTemplate },
+      { to: '/template-library', label: 'เทมเพลต', icon: LayoutTemplate },
       { to: '/book', label: 'เขียนหนังสือ', icon: BookOpen },
       { to: '/present', label: 'พรีเซนต์', icon: Presentation },
       { to: '/projects', label: 'โปรเจกต์', icon: Images },

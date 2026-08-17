@@ -6,31 +6,36 @@ const COLUMNS: { title: string; links: { label: string; to: string }[] }[] = [
     title: 'PRODUCT',
     links: [
       { label: 'ความสามารถ', to: '/features' },
+      { label: 'เทมเพลต', to: '/templates' },
       { label: 'ตัวอย่างผลงาน', to: '/showcase' },
-      { label: 'แพ็กเกจ', to: '/pricing' },
-      { label: 'แหล่งข้อมูล', to: '/knowledge' },
-      { label: 'เขียนหนังสือ', to: '/book' },
-      { label: 'พรีเซนเทชัน', to: '/present' },
+      { label: 'ราคา', to: '/pricing' },
     ],
   },
   {
     title: 'RESOURCES',
     links: [
-      { label: 'ศูนย์ช่วยเหลือ', to: '/about#help' },
-      { label: 'คำถามที่พบบ่อย', to: '/pricing#faq' },
-      { label: 'วิธีเริ่มใช้งาน', to: '/features#how' },
+      { label: 'หนังสือ / eBook', to: '/showcase?category=book' },
+      { label: 'Research', to: '/showcase?category=academic' },
+      { label: 'Presentation', to: '/showcase?category=presentation' },
+      { label: 'Manga / Comic', to: '/showcase?category=manga' },
+      { label: 'Kids', to: '/showcase?category=kids' },
     ],
   },
   {
     title: 'LEGAL',
     links: [
-      { label: 'นโยบายความเป็นส่วนตัว', to: '/about#privacy' },
-      { label: 'เงื่อนไขการใช้บริการ', to: '/about#terms' },
+      { label: 'นโยบายความเป็นส่วนตัว', to: '/privacy' },
+      { label: 'เงื่อนไขการใช้บริการ', to: '/terms' },
+      { label: 'AI Policy', to: '/ai-policy' },
     ],
   },
   {
     title: 'CONTACT',
-    links: [{ label: 'ติดต่อ / ฝ่ายสนับสนุน', to: '/about#contact' }],
+    links: [
+      { label: 'เกี่ยวกับเรา', to: '/about' },
+      { label: 'ติดต่อ / ฝ่ายสนับสนุน', to: '/contact' },
+      { label: 'Help', to: '/help' },
+    ],
   },
 ];
 

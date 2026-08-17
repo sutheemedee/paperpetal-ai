@@ -66,7 +66,7 @@ const Templates = () => {
       <Seo
         title="คลังเทมเพลต | KIVORA"
         description="เลือกเทมเพลตหนังสือ คู่มือ คอร์ส พรีเซนเทชัน รายงาน นิยาย มังงะ และบทภาพยนตร์ พร้อมโครงสร้างและสไตล์สำเร็จรูป"
-        path="/templates"
+        path="/template-library"
         noindex
       />
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 p-4 md:p-6">

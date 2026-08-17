@@ -17,10 +17,14 @@ import {
   Wand2,
   WandSparkles,
 } from 'lucide-react';
-import { FullLogo, PetalMark } from '@/components/brand/Logo';
+import { FullLogo } from '@/components/brand/Logo';
+import PublicHeader from '@/components/marketing/PublicHeader';
+import PublicFooter from '@/components/marketing/PublicFooter';
+import ShowcaseCover from '@/components/showcase/ShowcaseCover';
 import { useAuth } from '@/auth/AuthProvider';
 import { FALLBACK_PLANS, PLAN_HIGHLIGHTS } from '@/lib/plans';
 import Seo, { SITE_URL, faqJsonLd } from '@/components/Seo';
+import { CATEGORY_LABEL, featuredShowcase } from '@/showcase/data';
 
 const OUTPUTS = [
   { icon: BookOpen, label: 'หนังสือ / eBook' },
@@ -29,29 +33,6 @@ const OUTPUTS = [
   { icon: FileText, label: 'Research / Report' },
   { icon: Stethoscope, label: 'Medical Content' },
   { icon: Scale, label: 'Legal Draft' },
-];
-
-const SHOWCASES = [
-  {
-    title: 'AI Mastery 2026',
-    type: 'Book · 120 Pages',
-    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    title: 'Marketing Strategy',
-    type: 'Presentation · 40 Slides',
-    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    title: 'Medical Atlas',
-    type: 'Document · Visual Guide',
-    image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=900&q=80',
-  },
-  {
-    title: 'Research Intelligence',
-    type: 'Report · Citation Ready',
-    image: 'https://images.unsplash.com/photo-1456406644174-8ddd4cd52a06?auto=format&fit=crop&w=900&q=80',
-  },
 ];
 
 const FEATURES = [
@@ -138,35 +119,7 @@ const Home = () => {
         ]}
       />
 
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#070A18]/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
-          <Link to="/" className="flex min-w-0 items-center gap-2">
-            <PetalMark className="h-9 w-9 shrink-0" />
-            <span className="min-w-0">
-              <span className="block truncate font-display text-sm font-bold tracking-[0.2em]">KIVORA</span>
-              <span className="hidden truncate text-[10px] uppercase tracking-[0.18em] text-slate-400 sm:block">
-                Knowledge Into Creation
-              </span>
-            </span>
-          </Link>
-
-          <nav className="hidden items-center gap-6 text-xs font-ui font-bold text-slate-300 lg:flex">
-            <a href="#showcase" className="hover:text-white">ตัวอย่างผลงาน</a>
-            <a href="#features" className="hover:text-white">ความสามารถ</a>
-            <a href="#workflow" className="hover:text-white">วิธีทำงาน</a>
-            <Link to="/pricing" className="hover:text-white">ราคา</Link>
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <Link to="/auth/sign-in" className="hidden min-h-10 items-center rounded-xl border border-white/10 px-4 text-xs font-ui font-bold text-slate-200 sm:flex">
-              เข้าสู่ระบบ
-            </Link>
-            <Link to="/auth/sign-up" className="flex min-h-10 items-center rounded-xl bg-gradient-ai px-4 text-xs font-ui font-bold text-primary-foreground shadow-[var(--shadow-glow)]">
-              เริ่มใช้ฟรี
-            </Link>
-          </div>
-        </div>
-      </header>
+      <PublicHeader />
 
       <main>
         <section className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-12 md:py-16 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:py-20">
@@ -248,26 +201,28 @@ const Home = () => {
                 ให้ผู้ใช้เห็นทันทีว่า KIVORA ไม่ได้เป็นแค่แชต แต่เป็น workspace สำหรับสร้างชิ้นงานที่นำไปใช้ต่อได้จริง
               </p>
             </div>
-            <Link to="/auth/sign-up" className="text-sm font-ui font-bold text-cyan-300">
-              เริ่มจากตัวอย่างนี้ →
+            <Link to="/showcase" className="text-sm font-ui font-bold text-cyan-300">
+              ดูผลงานทั้งหมด →
             </Link>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {SHOWCASES.map(item => (
-              <article key={item.title} className="group overflow-hidden rounded-2xl border border-white/10 bg-[#10172B]">
-                <div className="aspect-[4/3] overflow-hidden bg-[#151D34]">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105 group-hover:opacity-100"
-                    loading="lazy"
-                  />
-                </div>
+            {featuredShowcase.slice(0, 8).map(item => (
+              <article key={item.slug} className="group overflow-hidden rounded-2xl border border-white/10 bg-[#10172B]">
+                <Link to={`/showcase/${item.slug}`} className="block aspect-[3/4]">
+                  <ShowcaseCover project={item} compact />
+                </Link>
                 <div className="p-4">
-                  <span className="rounded-full bg-violet-500/10 px-2 py-1 text-[10px] font-ui font-bold text-violet-300">AI DEMO</span>
+                  <span className="rounded-full bg-violet-500/10 px-2 py-1 text-[10px] font-ui font-bold text-violet-300">
+                    {CATEGORY_LABEL[item.category]}
+                  </span>
                   <h3 className="mt-3 font-display text-sm font-bold">{item.title}</h3>
-                  <p className="mt-1 text-xs font-ui text-slate-400">{item.type}</p>
+                  <p className="mt-1 text-xs font-ui text-slate-400">
+                    {item.pageCount ? `${item.pageCount} หน้า` : `${item.slideCount} สไลด์`} · เปิดอ่านได้
+                  </p>
+                  <Link to={`/showcase/${item.slug}`} className="mt-3 flex min-h-9 items-center justify-center rounded-xl border border-white/10 text-xs font-ui font-bold">
+                    เปิดอ่าน
+                  </Link>
                 </div>
               </article>
             ))}
@@ -351,9 +306,7 @@ const Home = () => {
         </section>
       </main>
 
-      <footer className="border-t border-white/10 px-4 py-6 text-center text-[11px] font-ui text-slate-500">
-        KIVORA · Knowledge Into Creation
-      </footer>
+      <PublicFooter />
     </div>
   );
 };

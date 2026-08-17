@@ -22,7 +22,7 @@ export const useCreateFromDemo = () => {
       /* storage disabled — template is optional */
     }
     if (!session) {
-      navigate('/register?intent=template');
+      navigate('/auth/sign-up?intent=template');
       return;
     }
     navigate(demo.kind === 'presentation' ? '/present' : '/book');
