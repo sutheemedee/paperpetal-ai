@@ -38,7 +38,7 @@ const PublicHeader = () => {
               to={l.to}
               end={l.to === '/'}
               className={({ isActive }) =>
-                `relative flex min-h-11 items-center text-xs font-ui font-bold transition-colors ${
+                `relative flex min-h-11 items-center text-xs font-ui font-bold transition-colors focus-visible:outline-none focus-visible:ring-0 ${
                   isActive ? 'text-foreground after:absolute after:bottom-1.5 after:left-0 after:h-0.5 after:w-full after:rounded-full after:bg-gradient-ai' : 'text-muted-foreground hover:text-foreground'
                 }`
               }

@@ -14,6 +14,9 @@ import Pricing from "./pages/Pricing.tsx";
 import Showcase from "./pages/Showcase.tsx";
 import ShowcaseReader from "./pages/ShowcaseReader.tsx";
 import PublicInfo from "./pages/PublicInfo.tsx";
+import Features from "./pages/Features.tsx";
+import CreateWithKivora from "./pages/CreateWithKivora.tsx";
+import PublicTemplates from "./pages/PublicTemplates.tsx";
 import Billing from "./pages/Billing.tsx";
 import Admin from "./pages/Admin.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
@@ -50,9 +53,9 @@ const App = () => (
                 <Route path="/pricing" element={<Pricing />} />
                 <Route path="/showcase" element={<Showcase />} />
                 <Route path="/showcase/:slug" element={<ShowcaseReader />} />
-                <Route path="/features" element={<PublicInfo />} />
-                <Route path="/create-with-kivora" element={<PublicInfo />} />
-                <Route path="/templates" element={<PublicInfo />} />
+                <Route path="/features" element={<Features />} />
+                <Route path="/create-with-kivora" element={<CreateWithKivora />} />
+                <Route path="/templates" element={<PublicTemplates />} />
                 <Route path="/about" element={<PublicInfo />} />
                 <Route path="/contact" element={<PublicInfo />} />
                 <Route path="/help" element={<PublicInfo />} />

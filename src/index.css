@@ -101,17 +101,30 @@
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-ui);
+    line-height: 1.72;
     overflow-x: hidden;
     text-wrap: pretty;
+    overflow-wrap: break-word;
+    word-break: normal;
+    white-space: normal;
   }
 
   h1, h2, h3, h4 {
     font-family: var(--font-heading);
+    line-height: 1.2;
     text-wrap: balance;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  p, li, dd, dt, span {
+    overflow-wrap: break-word;
+    word-break: normal;
   }
 
   button, a, select, [role='button'] {
     touch-action: manipulation;
+    line-height: 1.45;
   }
 
   @media (max-width: 767px) {
@@ -149,6 +162,20 @@
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+  .thai-safe {
+    font-family: var(--font-ui);
+    line-height: 1.72;
+    overflow-wrap: break-word;
+    word-break: normal;
+    white-space: normal;
+  }
+  .thai-heading-safe {
+    font-family: var(--font-heading);
+    line-height: 1.22;
+    overflow-wrap: break-word;
+    word-break: normal;
+    white-space: normal;
   }
   .bg-gradient-ai,
   .bg-gradient-brand {
