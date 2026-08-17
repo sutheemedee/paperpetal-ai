@@ -96,7 +96,7 @@ const ShowcaseCover = ({ project, compact = false }: { project: ShowcaseProject;
         <span className="text-[10px] font-ui font-bold uppercase tracking-[0.18em] text-white/78">KIVORA</span>
       </div>
       <div className="mt-auto pt-28">
-        <h3 className={`${compact ? 'text-xl md:text-2xl' : 'text-3xl md:text-4xl'} thai-heading-safe max-w-[14ch] font-display font-extrabold drop-shadow`}>
+        <h3 className={`${compact ? 'text-xl md:text-2xl' : 'text-3xl md:text-4xl'} thai-heading-safe max-w-[14ch] font-heading font-extrabold drop-shadow`}>
           {project.cover.title}
         </h3>
         <p className="thai-safe mt-3 max-w-xs text-xs text-white/84">{project.cover.subtitle}</p>

@@ -9,13 +9,17 @@ Disallow: /write
 Disallow: /present
 Disallow: /research
 Disallow: /studio
-Disallow: /assets
+Allow: /assets/
 Disallow: /publish
 Disallow: /export
 Disallow: /analytics
 Disallow: /settings
 Disallow: /billing
 Disallow: /admin
+Disallow: /auth/sign-in
+Disallow: /auth/sign-up
+Disallow: /login
+Disallow: /register
 Disallow: /auth/reset-password
 
 # AI/search crawlers may index public marketing and showcase pages.

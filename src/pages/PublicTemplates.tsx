@@ -66,7 +66,7 @@ const PublicTemplates = () => {
           <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
             <div>
               <p className="text-xs font-ui font-bold uppercase tracking-[0.16em] text-violet-300">Template Library</p>
-              <h1 className="thai-heading-safe mt-3 font-display text-3xl font-extrabold md:text-5xl">
+              <h1 className="thai-heading-safe mt-3 font-heading text-3xl font-extrabold md:text-5xl">
                 เริ่มเร็วขึ้นด้วย KIVORA Templates
               </h1>
               <p className="thai-safe mt-3 max-w-2xl text-sm text-slate-300 md:text-base">
@@ -116,7 +116,7 @@ const PublicTemplates = () => {
                       <span className="rounded-full bg-cyan-500/12 px-2.5 py-1 text-[10px] font-ui font-bold text-cyan-200">Popular</span>
                     )}
                   </div>
-                  <h2 className="thai-heading-safe mt-3 font-display text-base font-extrabold">{template.name}</h2>
+                  <h2 className="thai-heading-safe mt-3 font-heading text-base font-extrabold">{template.name}</h2>
                   <p className="thai-safe mt-1 text-xs text-slate-400">{template.description}</p>
                   <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] font-ui text-slate-400">
                     <span className="rounded-lg border border-white/10 px-2 py-1.5">{template.layoutDNA.pageSize ?? 'A4'}</span>

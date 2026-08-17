@@ -110,7 +110,7 @@ export const TemplateVisual = ({ template, index = 0, compact = false }: { templ
       </div>
       <div className="relative z-10 mt-auto pt-24">
         <p className="text-[10px] font-ui font-bold uppercase tracking-[0.16em] text-white/70">{template.contentType}</p>
-        <h3 className={`${compact ? 'text-xl' : 'text-2xl'} thai-heading-safe mt-2 max-w-[14ch] font-display font-extrabold`}>
+        <h3 className={`${compact ? 'text-xl' : 'text-2xl'} thai-heading-safe mt-2 max-w-[14ch] font-heading font-extrabold`}>
           {template.name}
         </h3>
         <div className="mt-4 grid grid-cols-3 gap-2">
@@ -131,7 +131,7 @@ export const PageMiniature = ({ title, label, variant = 0 }: { title: string; la
     <div className="absolute inset-0 bg-gradient-to-t from-[#070A18] via-[#070A18]/45 to-transparent" />
     <div className="relative z-10 flex min-h-[160px] flex-col p-4">
       <span className="text-[10px] font-ui font-bold uppercase tracking-[0.14em] text-cyan-200">{label}</span>
-      <h3 className="thai-heading-safe mt-auto font-display text-lg font-extrabold text-white">{title}</h3>
+      <h3 className="thai-heading-safe mt-auto font-heading text-lg font-extrabold text-white">{title}</h3>
       <div className="mt-3 flex gap-2">
         <span className="h-8 flex-1 rounded border border-white/16 bg-white/10" />
         <span className="h-8 flex-1 rounded border border-white/16 bg-white/10" />

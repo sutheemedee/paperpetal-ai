@@ -40,7 +40,7 @@ const TemplateCard = ({ template: t, planCode, unrestricted, favorite, onToggleF
       <button
         type="button"
         onClick={() => onPreview(t)}
-        className={`relative flex h-24 w-full items-end bg-gradient-to-br ${t.thumbnail} p-3 text-left`}
+        className={`relative flex min-h-24 w-full items-end bg-gradient-to-br ${t.thumbnail} p-3 text-left`}
       >
         <span className="rounded-full bg-background/70 px-2 py-0.5 text-[10px] font-ui font-bold uppercase tracking-wide text-foreground backdrop-blur">
           {CATEGORY_LABEL[t.category]}
@@ -61,7 +61,7 @@ const TemplateCard = ({ template: t, planCode, unrestricted, favorite, onToggleF
 
       <div className="flex flex-1 flex-col gap-2 p-3">
         <TemplateBadges t={t} />
-        <h3 className="font-display text-sm font-bold leading-tight">{t.name}</h3>
+        <h3 className="font-display text-sm font-bold leading-[1.55]">{t.name}</h3>
         <p className="line-clamp-2 text-[11px] font-ui text-muted-foreground">{t.description}</p>
         <dl className="grid grid-cols-2 gap-1 text-[10px] font-ui text-muted-foreground">
           <div>≈ {t.defaultPageCount} {unit}</div>

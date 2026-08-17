@@ -56,7 +56,7 @@ const PublicInfo = () => {
         <div className="rounded-2xl border border-white/10 bg-[#10172B] p-6 md:p-8">
           <Icon className="h-8 w-8 text-cyan-300" />
           <p className="mt-5 text-xs font-ui font-bold uppercase tracking-[0.16em] text-violet-300">{content.label}</p>
-          <h1 className="thai-heading-safe mt-3 max-w-3xl font-display text-3xl font-extrabold md:text-5xl">{content.title}</h1>
+          <h1 className="thai-heading-safe mt-3 max-w-3xl font-heading text-3xl font-extrabold md:text-5xl">{content.title}</h1>
           <p className="thai-safe mt-4 max-w-2xl text-base text-slate-300">{content.body}</p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row">
             <Link to="/showcase" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-gradient-ai px-5 text-sm font-ui font-bold text-primary-foreground">

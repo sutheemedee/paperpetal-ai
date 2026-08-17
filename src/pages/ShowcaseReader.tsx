@@ -158,7 +158,7 @@ const ShowcaseReader = () => {
           <div className="aspect-[3/4]">
             <ShowcaseCover project={project} compact />
           </div>
-          <h1 className="thai-heading-safe mt-4 font-display text-lg font-bold">{project.title}</h1>
+          <h1 className="thai-heading-safe mt-4 font-heading text-lg font-bold">{project.title}</h1>
           <p className="thai-safe mt-1 text-xs text-slate-400">{project.subtitle}</p>
           <p className="thai-safe mt-3 rounded-xl border border-white/10 bg-white/[0.03] p-3 text-xs text-slate-300">
             ตัวอย่าง {previewCount} จาก {totalPages} {project.category === 'presentation' ? 'สไลด์' : 'หน้า'} / {paper.label}
@@ -187,7 +187,7 @@ const ShowcaseReader = () => {
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-white/10 bg-[#10172B] p-2">
             <div className="min-w-0 px-2">
               <p className="truncate text-xs font-ui font-bold text-slate-400">{CATEGORY_LABEL[project.category]} / {paper.label}</p>
-              <h1 className="thai-heading-safe truncate font-display text-sm font-bold md:text-base">{project.title}</h1>
+              <h1 className="thai-heading-safe truncate font-heading text-sm font-bold md:text-base">{project.title}</h1>
             </div>
             <div className="flex flex-wrap items-center gap-1">
               <button type="button" onClick={() => setMode('single')} className={`min-h-9 rounded-xl border border-white/10 px-3 text-xs font-ui font-bold ${mode === 'single' ? 'bg-white/10' : ''}`}>Single</button>
@@ -218,7 +218,7 @@ const ShowcaseReader = () => {
                   ) : (
                     <>
                       <p className="text-[11px] font-ui font-bold uppercase tracking-[0.16em] text-violet-500">{readerPage.kicker ?? project.subcategory}</p>
-                      <h2 className={`thai-heading-safe mt-3 font-display font-extrabold ${project.category === 'presentation' ? 'text-3xl md:text-5xl text-white' : 'text-2xl md:text-3xl'}`}>
+                      <h2 className={`thai-heading-safe mt-3 font-heading font-extrabold ${project.category === 'presentation' ? 'text-3xl md:text-5xl text-white' : 'text-2xl md:text-3xl'}`}>
                         {readerPage.title}
                       </h2>
                       {readerPage.role === 'toc' ? (

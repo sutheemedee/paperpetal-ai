@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['Sora', 'Noto Sans Thai', 'sans-serif'],
+        display: ['Noto Sans Thai', 'Sora', 'sans-serif'],
         heading: ['Noto Sans Thai', 'Sora', 'sans-serif'],
         body: ['Noto Sans Thai', 'sans-serif'],
         ui: ['Noto Sans Thai', 'sans-serif'],

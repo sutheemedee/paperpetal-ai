@@ -133,7 +133,7 @@ const CreateWithKivora = () => {
             about: ['Books', 'Research', 'Presentation', 'Kids Books', 'Medical Publishing', 'Legal Publishing', 'Manga'],
           }),
           itemListJsonLd(groups.flatMap(group => group.items).map(item => ({
-            name: bilingual[item] ? `${item} — ${bilingual[item]}` : item,
+            name: thaiContext[item] ? `${item} — ${thaiContext[item]}` : item,
             path: `/create-with-kivora?type=${encodeURIComponent(item)}`,
           }))),
         ]}
@@ -143,7 +143,7 @@ const CreateWithKivora = () => {
         <section className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-[0.86fr_1.14fr] md:items-center md:py-16">
           <div>
             <p className="text-xs font-ui font-bold uppercase tracking-[0.16em] text-pink-300">Creation Catalog</p>
-            <h1 className="thai-heading-safe mt-3 max-w-3xl font-display text-4xl font-extrabold md:text-5xl">
+            <h1 className="thai-heading-safe mt-3 max-w-3xl font-heading text-4xl font-extrabold md:text-5xl">
               สร้างอะไรได้บ้างด้วย KIVORA
             </h1>
             <p className="thai-safe mt-4 max-w-2xl text-base text-slate-300 md:text-lg">
@@ -186,7 +186,7 @@ const CreateWithKivora = () => {
                 <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
                   <div>
                     <group.icon className="h-6 w-6 text-cyan-300" />
-                    <h2 className="thai-heading-safe mt-3 font-display text-2xl font-extrabold">{group.title}</h2>
+                    <h2 className="thai-heading-safe mt-3 font-heading text-2xl font-extrabold">{group.title}</h2>
                   </div>
                   <Link to={`/showcase?category=${group.id}`} className="text-sm font-ui font-bold text-cyan-300">
                     ดูตัวอย่างหมวดนี้
@@ -197,7 +197,7 @@ const CreateWithKivora = () => {
                     <article key={item} className="rounded-xl border border-white/10 bg-[#070A18] p-3">
                       <PageMiniature title={item} label={group.title} variant={groupIndex + itemIndex} />
                       <div className="pt-4">
-                        <h3 className="thai-heading-safe font-display text-base font-extrabold">{item}</h3>
+                        <h3 className="thai-heading-safe font-heading text-base font-extrabold">{item}</h3>
                         {thaiContext[item] && <p className="thai-safe mt-1 text-xs font-ui font-bold text-cyan-200">{thaiContext[item]}</p>}
                         <p className="thai-safe mt-1 text-xs text-slate-400">
                           โครงงานพร้อมปก โครงสร้างเนื้อหา ตัวอย่างหน้า และไฟล์ส่งออกที่เหมาะกับงานประเภทนี้
