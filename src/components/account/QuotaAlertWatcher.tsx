@@ -4,11 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/auth/AuthProvider';
 import { alertMessage, alertTitle, collectQuotaAlerts, isNewAlert, markAlertSeen } from '@/lib/quotaAlerts';
+import { isUnlimitedPlanLike } from '@/lib/plans';
 
-/**
- * Watches usage counters and fires an in-app toast (plus one email per
- * metric/level/billing-period) as soon as a quota threshold is crossed.
- */
 const QuotaAlertWatcher = () => {
   const { account, user, isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -16,7 +13,8 @@ const QuotaAlertWatcher = () => {
 
   useEffect(() => {
     if (!user || !account) return;
-    if (isAdmin || account.planCode === 'unlimited') return; // operator accounts: unlimited (∞)
+    if (isAdmin || isUnlimitedPlanLike(account)) return;
+
     const period = account.periodStart;
     const fresh = collectQuotaAlerts(account).filter(a => isNewAlert(user.id, period, a));
     if (fresh.length === 0) return;

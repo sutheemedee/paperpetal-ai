@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthProvider';
-import { METRIC_LABEL, PlanEntitlements, UsageMetric, usageRatio, usageTone } from '@/lib/plans';
+import { isUnlimitedPlanLike, METRIC_LABEL, PlanEntitlements, UsageMetric, usageRatio, usageTone } from '@/lib/plans';
 import UpgradeModal, { UpgradeReason } from '@/components/account/UpgradeModal';
 import QuotaAlertWatcher from '@/components/account/QuotaAlertWatcher';
 
@@ -36,7 +36,7 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
   const { account, setAccount, user, isAdmin } = useAuth();
   const [reason, setReason] = useState<UpgradeReason | null>(null);
   /** Operator accounts (admin role or unlimited plan) ignore every credit/quota rule. */
-  const unrestricted = isAdmin || account?.planCode === 'unlimited';
+  const unrestricted = isAdmin || isUnlimitedPlanLike(account);
 
   const call = useCallback(async (body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke('entitlements', { body });

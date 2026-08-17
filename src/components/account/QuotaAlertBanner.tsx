@@ -10,6 +10,7 @@ import {
   dismissBanner,
   isBannerDismissed,
 } from '@/lib/quotaAlerts';
+import { isUnlimitedPlanLike } from '@/lib/plans';
 
 const TONE: Record<QuotaAlert['level'], string> = {
   warn: 'border-highlight/40 bg-highlight/10 text-highlight',
@@ -20,7 +21,7 @@ const TONE: Record<QuotaAlert['level'], string> = {
 /** Persistent in-app quota warning with a one-tap upgrade path. */
 const QuotaAlertBanner = ({ compact }: { compact?: boolean }) => {
   const { account, user, isAdmin } = useAuth();
-  const unrestricted = isAdmin || account?.planCode === 'unlimited';
+  const unrestricted = isAdmin || isUnlimitedPlanLike(account);
   const alerts = useMemo(() => (unrestricted ? [] : collectQuotaAlerts(account)), [account, unrestricted]);
   const top = alerts[0];
   const signature = alerts.map(a => `${a.metric}:${a.level}`).join(',');

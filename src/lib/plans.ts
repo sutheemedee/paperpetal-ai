@@ -124,3 +124,9 @@ export const usageTone = (ratio: number) => {
   if (ratio >= 0.75) return 'warn';
   return 'ok';
 };
+
+export const isUnlimitedPlanLike = (account?: { planCode?: string | null; planName?: string | null } | null) => {
+  const code = String(account?.planCode ?? '').toLowerCase();
+  const name = String(account?.planName ?? '').toLowerCase();
+  return code === 'unlimited' || name.includes('unlimited');
+};

@@ -30,6 +30,37 @@ export async function requireUser(req: Request) {
 
 const OPERATOR_ROLES = ['admin', 'superadmin', 'supperadmin', 'subperadmin'];
 
+const UNLIMITED_ENTITLEMENTS: Record<string, unknown> = {
+  projects: null,
+  aiPages: null,
+  aiImages: null,
+  slides: null,
+  sourceProcessing: null,
+  sourcesPerProject: null,
+  exports: null,
+  exportsPerDay: null,
+  research: null,
+  pdf: true,
+  docx: true,
+  epub: true,
+  pptx: true,
+  watermark: false,
+  ultraRealistic: true,
+  advancedSources: true,
+  youtube: true,
+  manga: true,
+  characterDNA: true,
+  knowledgeMap: true,
+  priorityQueue: true,
+  fairUse: true,
+};
+
+const isUnlimitedLike = (code?: string | null, name?: string | null, entitlements?: Record<string, unknown> | null) => {
+  const c = String(code ?? '').toLowerCase();
+  const n = String(name ?? '').toLowerCase();
+  return c === 'unlimited' || n.includes('unlimited') || entitlements?.fairUse === true;
+};
+
 export async function isAdmin(userId: string) {
   const { data } = await admin().from('user_roles').select('role').eq('user_id', userId).in('role', OPERATOR_ROLES);
   return (data ?? []).length > 0;
@@ -95,7 +126,9 @@ export async function loadAccount(userId: string): Promise<AccountState> {
     sub = rolled.data ?? sub;
   }
 
-  const { data: plan } = await db.from('plans').select('*').eq('code', sub.plan_code).maybeSingle();
+  const normalizedPlanCode = String(sub.plan_code ?? 'free').toLowerCase();
+  const { data: plan } = await db.from('plans').select('*').eq('code', normalizedPlanCode).maybeSingle();
+  const unlimited = isUnlimitedLike(normalizedPlanCode, plan?.name ?? sub.plan_code, (plan?.entitlements ?? {}) as Record<string, unknown>);
   const periodStart = new Date(sub.current_period_start).toISOString().slice(0, 10);
 
   const { data: counterRows } = await db
@@ -133,10 +166,10 @@ export async function loadAccount(userId: string): Promise<AccountState> {
     .eq('archived', false);
 
   return {
-    planCode: sub.plan_code,
-    planName: plan?.name ?? sub.plan_code,
+    planCode: unlimited ? 'unlimited' : normalizedPlanCode,
+    planName: unlimited ? 'Unlimited' : plan?.name ?? sub.plan_code,
     status: sub.status,
-    entitlements: (plan?.entitlements ?? {}) as Record<string, unknown>,
+    entitlements: unlimited ? UNLIMITED_ENTITLEMENTS : (plan?.entitlements ?? {}) as Record<string, unknown>,
     periodStart: sub.current_period_start,
     periodEnd: sub.current_period_end,
     cancelAtPeriodEnd: sub.cancel_at_period_end,
@@ -160,7 +193,7 @@ export async function commitUsage(opts: {
   costEstimate?: number | null;
   metadata?: Record<string, unknown>;
 }) {
-  if (await isAdmin(opts.userId)) {
+  if ((await isAdmin(opts.userId)) || String(opts.planCode ?? '').toLowerCase() === 'unlimited') {
     await admin().from('usage_ledger').insert({
       user_id: opts.userId,
       operation: opts.operation,

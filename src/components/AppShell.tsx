@@ -6,22 +6,29 @@ import { PetalMark } from '@/components/brand/Logo';
 import QuotaAlertBanner from '@/components/account/QuotaAlertBanner';
 import { useEntitlements } from '@/auth/useEntitlements';
 import { useAuth } from '@/auth/AuthProvider';
+import { isUnlimitedPlanLike } from '@/lib/plans';
 
 const UsageChip = () => {
   const { usage } = useEntitlements();
+  const { account, isAdmin } = useAuth();
   const { used, limit, ratio, unlimited } = usage('aiPages');
-  const pct = unlimited ? 100 : Math.min(100, Math.round(ratio * 100));
+  const effectiveUnlimited = unlimited || isAdmin || isUnlimitedPlanLike(account);
+  const pct = effectiveUnlimited ? 100 : Math.min(100, Math.round(ratio * 100));
+  const limitLabel = effectiveUnlimited ? '∞' : limit === null ? 'Fair Use' : limit.toLocaleString();
+
   return (
     <Link
       to="/billing"
       className="hidden min-h-10 flex-col justify-center rounded-xl border border-border bg-elevated px-3 py-1.5 hover:border-strong lg:flex"
-      title="โควต้า AI Pages เดือนนี้"
+      title="โควตา AI Pages เดือนนี้"
     >
-      <span className="text-[10px] font-ui font-bold uppercase tracking-[0.14em] text-muted-foreground">AI Pages</span>
+      <span className="text-[10px] font-ui font-bold uppercase tracking-[0.14em] text-muted-foreground">
+        {effectiveUnlimited ? 'UNLIMITED' : 'AI Pages'}
+      </span>
       <span className="flex items-center gap-2">
         <span className="text-xs font-ui font-bold tabular-nums">
           {used.toLocaleString()}
-          <span className="text-muted-foreground"> / {unlimited ? '∞' : limit === null ? 'Fair Use' : limit.toLocaleString()}</span>
+          <span className="text-muted-foreground"> / {limitLabel}</span>
         </span>
         <span className="h-1.5 w-12 overflow-hidden rounded-full bg-surface-hover">
           <span className="block h-full rounded-full bg-gradient-ai" style={{ width: `${pct}%` }} />
@@ -33,17 +40,17 @@ const UsageChip = () => {
 
 const AppShell = ({ children, title }: { children: React.ReactNode; title?: string }) => {
   const { user, account, isAdmin } = useAuth();
+  const unrestricted = isAdmin || isUnlimitedPlanLike(account);
 
   return (
     <div className="flex min-h-[100dvh] bg-background">
-      {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-[100dvh] w-[248px] shrink-0 flex-col overflow-y-auto border-r border-border bg-sidebar lg:flex">
         <Link to="/dashboard" className="flex min-h-16 items-center gap-2 px-4">
           <PetalMark className="h-8 w-8 shrink-0" />
           <span className="min-w-0">
             <span className="block truncate font-display text-sm font-bold tracking-[0.18em]">KIVORA</span>
             <span className="block truncate text-[10px] font-ui uppercase tracking-[0.14em] text-muted-foreground">
-              {account?.planName ?? 'Knowledge Into Creation'}
+              {unrestricted ? 'UNLIMITED' : account?.planName ?? 'Knowledge Into Creation'}
             </span>
           </span>
         </Link>
@@ -51,7 +58,6 @@ const AppShell = ({ children, title }: { children: React.ReactNode; title?: stri
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Top command bar — 64px desktop */}
         <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-2 border-b border-border bg-background/90 px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur md:px-4">
           <Link to="/dashboard" className="flex min-w-0 items-center gap-2 lg:hidden">
             <PetalMark className="h-8 w-8 shrink-0" />
@@ -71,7 +77,7 @@ const AppShell = ({ children, title }: { children: React.ReactNode; title?: stri
               <Search className="h-4 w-4" />
             </Link>
             {user && <UsageChip />}
-            {user && !(isAdmin || account?.planCode === 'unlimited') && (
+            {user && !unrestricted && (
               <Link
                 to="/pricing"
                 className="press hidden min-h-10 items-center gap-1.5 rounded-xl bg-gradient-ai px-3 text-xs font-ui font-bold text-primary-foreground shadow-[var(--shadow-glow)] sm:flex"
