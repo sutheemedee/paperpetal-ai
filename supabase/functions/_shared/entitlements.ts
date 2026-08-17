@@ -194,18 +194,6 @@ export async function commitUsage(opts: {
   metadata?: Record<string, unknown>;
 }) {
   if ((await isAdmin(opts.userId)) || String(opts.planCode ?? '').toLowerCase() === 'unlimited') {
-    await admin().from('usage_ledger').insert({
-      user_id: opts.userId,
-      operation: opts.operation,
-      metric: opts.metric,
-      project_id: opts.projectId ?? null,
-      quantity: opts.quantity,
-      model: opts.model ?? null,
-      status: 'success',
-      plan_code: opts.planCode,
-      cost_estimate: opts.costEstimate ?? null,
-      metadata: { ...(opts.metadata ?? {}), operator_unmetered: true },
-    });
     return;
   }
 

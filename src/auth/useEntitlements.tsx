@@ -77,8 +77,7 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
   const consume = useCallback(
     async (input: ConsumeInput) => {
       if (unrestricted) {
-        // Log usage in the background but never block operator accounts.
-        call({ action: 'consume', ...input, quantity: input.quantity ?? 1 }).catch(() => {});
+        // Operator accounts are completely unmetered in-app: no check, no counter, no ledger.
         return true;
       }
       if (!user) {
