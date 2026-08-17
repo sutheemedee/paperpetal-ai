@@ -165,8 +165,8 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
   );
 
   const value = useMemo<Ctx>(
-    () => ({ consume, check, can, requireFeature, usage, track, openUpgrade }),
-    [consume, check, can, requireFeature, usage, track, openUpgrade],
+    () => ({ consume, check, can, requireFeature, usage, track, openUpgrade, unrestricted: !!unrestricted }),
+    [consume, check, can, requireFeature, usage, track, openUpgrade, unrestricted],
   );
 
   return (
