@@ -3,7 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight, Columns2, Maximize2, Minus, Plus, Sparkles } from 'lucide-react';
 import PublicHeader from '@/components/marketing/PublicHeader';
 import PublicFooter from '@/components/marketing/PublicFooter';
-import Seo from '@/components/Seo';
+import Seo, { breadcrumbJsonLd, publicationJsonLd } from '@/components/Seo';
 import ShowcaseCover from '@/components/showcase/ShowcaseCover';
 import { CATEGORY_LABEL, getShowcaseProject, ShowcasePage, ShowcaseProject } from '@/showcase/data';
 
@@ -127,7 +127,27 @@ const ShowcaseReader = () => {
 
   return (
     <div className="min-h-[100dvh] bg-[#070A18] text-white">
-      <Seo title={`${project.title} - KIVORA Book Reader`} description={project.description} path={`/showcase/${project.slug}`} />
+      <Seo
+        title={`${project.title} — ตัวอย่างอ่านจริง | KIVORA`}
+        description={`${project.description} เปิดอ่านตัวอย่าง ${previewCount} จาก ${totalPages} ${project.category === 'presentation' ? 'สไลด์' : 'หน้า'} พร้อมสารบัญและข้อมูลรูปแบบงาน`}
+        path={`/showcase/${project.slug}`}
+        jsonLd={[
+          breadcrumbJsonLd([
+            { name: 'หน้าแรก', path: '/' },
+            { name: 'ตัวอย่างผลงาน', path: '/showcase' },
+            { name: project.title, path: `/showcase/${project.slug}` },
+          ]),
+          publicationJsonLd({
+            title: project.title,
+            description: project.description,
+            path: `/showcase/${project.slug}`,
+            language: project.language,
+            format: project.format,
+            pages: project.pageCount ?? project.slideCount,
+            category: project.category,
+          }),
+        ]}
+      />
       <PublicHeader />
 
       <main className="mx-auto grid max-w-[1540px] gap-4 px-4 py-5 lg:grid-cols-[280px_minmax(0,1fr)_310px]">

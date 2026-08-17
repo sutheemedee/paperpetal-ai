@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Eye, Search, Sparkles } from 'lucide-react';
 import PublicHeader from '@/components/marketing/PublicHeader';
 import PublicFooter from '@/components/marketing/PublicFooter';
-import Seo from '@/components/Seo';
+import Seo, { breadcrumbJsonLd, itemListJsonLd, webPageJsonLd } from '@/components/Seo';
 import { TemplateVisual } from '@/components/marketing/MiniPreviews';
 import { TEMPLATES } from '@/templates/catalog';
 import { CATEGORY_LABEL, CONTENT_TYPE_LABEL, TemplateCategory } from '@/templates/types';
@@ -45,6 +45,20 @@ const PublicTemplates = () => {
         path="/templates"
         title="KIVORA Templates | เริ่มเร็วขึ้นด้วยเทมเพลต"
         description="เลือกเทมเพลต KIVORA พร้อม preview สำหรับหนังสือ งานวิจัย Presentation หนังสือเด็ก Manga และงานเผยแพร่"
+        jsonLd={[
+          breadcrumbJsonLd([{ name: 'หน้าแรก', path: '/' }, { name: 'เทมเพลต', path: '/templates' }]),
+          webPageJsonLd({
+            name: 'KIVORA Templates',
+            description: 'คลังเทมเพลตสำหรับเริ่มสร้างหนังสือ งานวิจัย Presentation หนังสือเด็ก Manga และงานเผยแพร่',
+            path: '/templates',
+            about: ['Book Templates', 'Research Templates', 'Presentation Templates', 'Kids Templates', 'Manga Templates'],
+          }),
+          itemListJsonLd(templates.slice(0, 24).map(template => ({
+            name: template.name,
+            description: template.description,
+            path: `/templates?template=${template.id}`,
+          }))),
+        ]}
       />
       <PublicHeader />
       <main>

@@ -7,7 +7,7 @@ import PublicFooter from '@/components/marketing/PublicFooter';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/auth/AuthProvider';
 import { FALLBACK_PLANS, PLAN_CTA, PLAN_HIGHLIGHTS, Plan, PlanCode } from '@/lib/plans';
-import Seo, { SITE_URL, breadcrumbJsonLd } from '@/components/Seo';
+import Seo, { SITE_URL, breadcrumbJsonLd, faqJsonLd, webPageJsonLd } from '@/components/Seo';
 
 const faqs = [
   {
@@ -93,6 +93,13 @@ const Pricing = () => {
             { name: 'หน้าแรก', path: '/' },
             { name: 'ราคา', path: '/pricing' },
           ]),
+          faqJsonLd(faqs),
+          webPageJsonLd({
+            name: 'ราคาและแพ็กเกจ KIVORA',
+            description: 'เปรียบเทียบแพ็กเกจ Free Trial, Starter, Creator และ Unlimited พร้อมโควตาและรูปแบบส่งออก',
+            path: '/pricing',
+            about: ['KIVORA Pricing', 'AI Subscription', 'AI Publishing Plans'],
+          }),
           {
             '@context': 'https://schema.org',
             '@type': 'Product',

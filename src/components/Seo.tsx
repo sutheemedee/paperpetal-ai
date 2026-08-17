@@ -92,3 +92,72 @@ export const breadcrumbJsonLd = (items: { name: string; path: string }[]) => ({
     item: `${SITE_URL}${it.path}`,
   })),
 });
+
+
+/** Generic WebPage schema for answer-engine / semantic understanding. */
+export const webPageJsonLd = ({
+  name,
+  description,
+  path,
+  about = [],
+}: {
+  name: string;
+  description: string;
+  path: string;
+  about?: string[];
+}) => ({
+  '@context': 'https://schema.org',
+  '@type': 'WebPage',
+  name,
+  description,
+  url: `${SITE_URL}${path}`,
+  inLanguage: 'th-TH',
+  isPartOf: { '@type': 'WebSite', name: SITE_NAME, url: SITE_URL },
+  about: about.map(name => ({ '@type': 'Thing', name })),
+});
+
+/** Collection/list schema used by creation catalog, templates and showcase. */
+export const itemListJsonLd = (items: { name: string; path: string; description?: string }[]) => ({
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  itemListElement: items.map((item, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    url: `${SITE_URL}${item.path}`,
+    name: item.name,
+    ...(item.description ? { description: item.description } : {}),
+  })),
+});
+
+/** Public demo publication schema. Use Book for fixed/reflowable books and CreativeWork otherwise. */
+export const publicationJsonLd = ({
+  title,
+  description,
+  path,
+  language,
+  format,
+  pages,
+  category,
+}: {
+  title: string;
+  description: string;
+  path: string;
+  language: string;
+  format: string;
+  pages?: number;
+  category: string;
+}) => ({
+  '@context': 'https://schema.org',
+  '@type': category === 'presentation' ? 'CreativeWork' : 'Book',
+  name: title,
+  description,
+  url: `${SITE_URL}${path}`,
+  inLanguage: language.includes('ไทย') ? 'th' : language.includes('English') ? 'en' : 'th',
+  ...(category === 'presentation' ? {} : {
+    bookFormat: 'https://schema.org/EBook',
+    ...(pages ? { numberOfPages: pages } : {}),
+  }),
+  additionalType: format,
+  isPartOf: { '@type': 'CollectionPage', name: 'KIVORA Showcase', url: `${SITE_URL}/showcase` },
+  creator: { '@type': 'Organization', name: SITE_NAME, url: SITE_URL },
+});

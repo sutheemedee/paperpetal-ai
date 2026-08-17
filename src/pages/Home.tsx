@@ -23,8 +23,9 @@ import PublicFooter from '@/components/marketing/PublicFooter';
 import ShowcaseCover from '@/components/showcase/ShowcaseCover';
 import { useAuth } from '@/auth/AuthProvider';
 import { FALLBACK_PLANS, PLAN_HIGHLIGHTS } from '@/lib/plans';
-import Seo, { SITE_URL, faqJsonLd } from '@/components/Seo';
+import Seo, { SITE_URL, faqJsonLd, webPageJsonLd } from '@/components/Seo';
 import { CATEGORY_LABEL, featuredShowcase } from '@/showcase/data';
+import { PUBLIC_FAQS } from '@/marketing/faq';
 
 const OUTPUTS = [
   { icon: BookOpen, label: 'หนังสือ / eBook' },
@@ -68,24 +69,6 @@ const FEATURES = [
   },
 ];
 
-const FAQS = [
-  {
-    q: 'KIVORA คืออะไร?',
-    a: 'KIVORA คือแพลตฟอร์ม AI ที่เปลี่ยนแหล่งข้อมูลและความรู้ของคุณให้กลายเป็นหนังสือ eBook คู่มือ งานวิจัย มังงะ และพรีเซนเทชัน พร้อม workflow สำหรับแก้ไขและส่งออกไฟล์',
-  },
-  {
-    q: 'ต้องเริ่มจากอะไร?',
-    a: 'คุณเริ่มได้จากไอเดียเปล่า ๆ หรือเพิ่มแหล่งข้อมูล เช่น YouTube, PDF, เว็บไซต์, Word และโน้ต จากนั้นเลือกชนิดผลงานที่ต้องการสร้าง',
-  },
-  {
-    q: 'ส่งออกไฟล์ได้กี่รูปแบบ?',
-    a: 'รองรับ PDF, Word (.docx), EPUB 3, PowerPoint (.pptx) และภาพปก PNG ตามสิทธิ์ของแพ็กเกจ',
-  },
-  {
-    q: 'งานที่สร้างเป็นของใคร?',
-    a: 'ผลงานที่คุณสร้างเป็นของคุณ นำไปแก้ไข เผยแพร่ หรือต่อยอดเชิงพาณิชย์ได้ตามสิทธิ์การใช้งานและแหล่งข้อมูลที่คุณนำเข้ามา',
-  },
-];
 
 const Home = () => {
   const { session, loading } = useAuth();
@@ -98,7 +81,13 @@ const Home = () => {
         title="KIVORA — เปลี่ยนความรู้ให้กลายเป็นผลงานด้วย AI"
         description="KIVORA เปลี่ยน YouTube, PDF, เว็บไซต์, Word และไอเดียของคุณให้เป็นหนังสือ eBook คู่มือ งานวิจัย มังงะ และพรีเซนเทชัน ส่งออก PDF, DOCX, EPUB, PPTX ได้"
         jsonLd={[
-          faqJsonLd(FAQS),
+          faqJsonLd(PUBLIC_FAQS),
+          webPageJsonLd({
+            name: 'KIVORA — เปลี่ยนความรู้ให้กลายเป็นผลงานด้วย AI',
+            description: 'แพลตฟอร์ม AI สำหรับเปลี่ยน YouTube, PDF, เว็บไซต์, Word และไอเดียให้เป็นหนังสือ งานวิจัย พรีเซนเทชัน และไฟล์พร้อมเผยแพร่',
+            path: '/',
+            about: ['AI Knowledge Platform', 'AI Publishing', 'Research Assistant', 'Presentation Generator'],
+          }),
           {
             '@context': 'https://schema.org',
             '@type': 'SoftwareApplication',
@@ -303,6 +292,20 @@ const Home = () => {
           <Link to="/auth/sign-up" className="mx-auto mt-6 flex min-h-12 w-full max-w-xs items-center justify-center gap-2 rounded-2xl bg-gradient-ai text-sm font-ui font-bold text-primary-foreground">
             สร้างบัญชีฟรี <ArrowRight className="h-4 w-4" />
           </Link>
+        </section>
+        <section className="mx-auto w-full max-w-6xl px-4 py-12" aria-labelledby="home-faq-title">
+          <div className="mb-6 max-w-3xl">
+            <p className="text-xs font-ui font-bold uppercase tracking-[0.16em] text-cyan-300">คำตอบแบบสั้นและตรงประเด็น</p>
+            <h2 id="home-faq-title" className="thai-heading-safe mt-2 text-2xl font-extrabold md:text-4xl">คำถามที่พบบ่อยเกี่ยวกับ KIVORA</h2>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {PUBLIC_FAQS.map(item => (
+              <details key={item.q} className="rounded-2xl border border-white/10 bg-[#10172B] p-4">
+                <summary className="thai-heading-safe min-h-11 cursor-pointer list-none text-sm font-bold text-slate-100">{item.q}</summary>
+                <p className="thai-safe mt-2 text-sm text-slate-400">{item.a}</p>
+              </details>
+            ))}
+          </div>
         </section>
       </main>
 

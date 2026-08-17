@@ -1,0 +1,28 @@
+# KIVORA
+
+> KIVORA is an AI Knowledge Into Creation platform. It helps users transform their own sources and ideas into books, eBooks, manuals, research drafts, presentations, educational content, visual publications, manga/comics and publish-ready files.
+
+## Canonical public pages
+- Home: https://paperpetal-ai.lovable.app/
+- Features: https://paperpetal-ai.lovable.app/features
+- What you can create: https://paperpetal-ai.lovable.app/create-with-kivora
+- Templates: https://paperpetal-ai.lovable.app/templates
+- Showcase: https://paperpetal-ai.lovable.app/showcase
+- Pricing: https://paperpetal-ai.lovable.app/pricing
+
+## Core capabilities
+- Knowledge Engine: organize user-provided YouTube links, PDFs, websites, documents and notes into project knowledge.
+- Ask KIVORA: answer questions using project context and sources.
+- Writing & Publishing: build structured books, eBooks, manuals and reports.
+- Research Workspace: structure academic work, literature review and citations without fabricating evidence.
+- Presentation Studio: turn project knowledge into presentation plans and editable slide output.
+- Visual Director: create or organize covers, diagrams, infographics and illustrations according to project type.
+- Export: PDF, DOCX, EPUB and PPTX according to plan entitlements.
+
+## Important accuracy notes
+- Public showcase projects are demos/samples, not customer projects.
+- Research and medical/legal content should be verified against appropriate sources before real-world use.
+- KIVORA must not fabricate citations, research data, legal authorities, or medical evidence.
+
+## Language
+Primary public language: Thai (th-TH). English terminology is used where it is standard or helpful.

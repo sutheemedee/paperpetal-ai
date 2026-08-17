@@ -2,7 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, BookOpen, Briefcase, GraduationCap, Languages, Presentation, Scale, Stethoscope } from 'lucide-react';
 import PublicHeader from '@/components/marketing/PublicHeader';
 import PublicFooter from '@/components/marketing/PublicFooter';
-import Seo from '@/components/Seo';
+import Seo, { breadcrumbJsonLd, itemListJsonLd, webPageJsonLd } from '@/components/Seo';
 import { PageMiniature } from '@/components/marketing/MiniPreviews';
 
 const filters = [
@@ -124,6 +124,19 @@ const CreateWithKivora = () => {
         path="/create-with-kivora"
         title="สร้างอะไรได้บ้างด้วย KIVORA"
         description="Catalog ผลงานที่สร้างได้ด้วย KIVORA ตั้งแต่หนังสือ งานวิจัย Presentation Manga หนังสือเด็ก ภาษา การแพทย์ และกฎหมาย"
+        jsonLd={[
+          breadcrumbJsonLd([{ name: 'หน้าแรก', path: '/' }, { name: 'สร้างอะไรได้บ้าง', path: '/create-with-kivora' }]),
+          webPageJsonLd({
+            name: 'สร้างอะไรได้บ้างด้วย KIVORA',
+            description: 'Catalog ประเภทผลงานที่ KIVORA สร้างได้ ตั้งแต่หนังสือ วิจัย พรีเซนเทชัน ไปจนถึง Medical, Legal, Kids และ Creative',
+            path: '/create-with-kivora',
+            about: ['Books', 'Research', 'Presentation', 'Kids Books', 'Medical Publishing', 'Legal Publishing', 'Manga'],
+          }),
+          itemListJsonLd(groups.flatMap(group => group.items).map(item => ({
+            name: bilingual[item] ? `${item} — ${bilingual[item]}` : item,
+            path: `/create-with-kivora?type=${encodeURIComponent(item)}`,
+          }))),
+        ]}
       />
       <PublicHeader />
       <main>

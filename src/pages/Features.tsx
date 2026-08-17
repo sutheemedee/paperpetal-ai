@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Bot, BrainCircuit, FileSearch, FileText, Image, Layers3, UploadCloud } from 'lucide-react';
 import PublicHeader from '@/components/marketing/PublicHeader';
 import PublicFooter from '@/components/marketing/PublicFooter';
-import Seo from '@/components/Seo';
+import Seo, { breadcrumbJsonLd, webPageJsonLd } from '@/components/Seo';
 
 const engines = [
   { icon: BrainCircuit, n: '01', title: 'Knowledge Engine', body: 'รับข้อมูลจากหลายแหล่ง วิเคราะห์ สรุป ค้นหา และเชื่อมโยงความรู้ให้กลายเป็นฐานข้อมูลที่ AI ใช้ต่อได้' },
@@ -21,6 +21,15 @@ const Features = () => (
       path="/features"
       title="ความสามารถของ KIVORA | AI Knowledge Engine"
       description="ดูว่า KIVORA เปลี่ยนแหล่งข้อมูลต้นทางให้เป็นหนังสือ สไลด์ รายงาน และผลงานพร้อมเผยแพร่ได้อย่างไร"
+      jsonLd={[
+        breadcrumbJsonLd([{ name: 'หน้าแรก', path: '/' }, { name: 'ความสามารถ', path: '/features' }]),
+        webPageJsonLd({
+          name: 'ความสามารถของ KIVORA',
+          description: 'KIVORA รวม Knowledge Engine, AI Director, Writing, Research, Visual และ Publishing Engine เพื่อเปลี่ยน Source ให้เป็นผลงานพร้อมเผยแพร่',
+          path: '/features',
+          about: ['Knowledge Engine', 'AI Writing', 'Research Engine', 'Visual Director', 'Publishing Engine'],
+        }),
+      ]}
     />
     <PublicHeader />
     <main>

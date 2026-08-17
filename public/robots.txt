@@ -1,19 +1,34 @@
 User-agent: *
 Allow: /
-Disallow: /admin
+Disallow: /dashboard
+Disallow: /projects
+Disallow: /sources
+Disallow: /knowledge
+Disallow: /create
+Disallow: /write
+Disallow: /present
+Disallow: /research
+Disallow: /studio
+Disallow: /assets
+Disallow: /publish
+Disallow: /export
+Disallow: /analytics
+Disallow: /settings
 Disallow: /billing
+Disallow: /admin
 Disallow: /auth/reset-password
 
+# AI/search crawlers may index public marketing and showcase pages.
 User-agent: Googlebot
 Allow: /
 
 User-agent: Bingbot
 Allow: /
 
-User-agent: GPTBot
+User-agent: OAI-SearchBot
 Allow: /
 
-User-agent: OAI-SearchBot
+User-agent: GPTBot
 Allow: /
 
 User-agent: PerplexityBot
@@ -23,12 +38,6 @@ User-agent: ClaudeBot
 Allow: /
 
 User-agent: Google-Extended
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
 Allow: /
 
 Sitemap: https://paperpetal-ai.lovable.app/sitemap.xml

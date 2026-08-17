@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, BookOpen, Search, Sparkles } from 'lucide-react';
 import PublicHeader from '@/components/marketing/PublicHeader';
 import PublicFooter from '@/components/marketing/PublicFooter';
-import Seo from '@/components/Seo';
+import Seo, { breadcrumbJsonLd, itemListJsonLd, webPageJsonLd } from '@/components/Seo';
 import ShowcaseCover from '@/components/showcase/ShowcaseCover';
 import { CATEGORY_LABEL, ShowcaseCategory, SHOWCASE_PROJECTS } from '@/showcase/data';
 
@@ -49,6 +49,20 @@ const Showcase = () => {
         title="ตัวอย่างผลงาน KIVORA — อ่านตัวอย่างจริง"
         description="ดูตัวอย่างผลงานที่สร้างได้ด้วย KIVORA ทั้งหนังสือ งานวิจัย พรีเซนเทชัน หนังสือเด็ก มังงะ การแพทย์ กฎหมาย และภาษา พร้อม preview อ่านได้จริง"
         path="/showcase"
+        jsonLd={[
+          breadcrumbJsonLd([{ name: 'หน้าแรก', path: '/' }, { name: 'ตัวอย่างผลงาน', path: '/showcase' }]),
+          webPageJsonLd({
+            name: 'KIVORA Showcase',
+            description: 'ตัวอย่างผลงาน KIVORA ที่เปิดอ่านหรือดูสไลด์ได้จริง พร้อมรายละเอียดประเภท ภาษา จำนวนหน้า และรูปแบบงาน',
+            path: '/showcase',
+            about: ['AI Book Examples', 'Research Examples', 'Presentation Examples', 'Kids Book Examples', 'Medical Examples', 'Manga Examples'],
+          }),
+          itemListJsonLd(SHOWCASE_PROJECTS.map(project => ({
+            name: project.title,
+            description: project.description,
+            path: `/showcase/${project.slug}`,
+          }))),
+        ]}
       />
       <PublicHeader />
 
