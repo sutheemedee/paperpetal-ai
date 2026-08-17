@@ -142,13 +142,16 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
   const usage = useCallback(
     (metric: UsageMetric) => {
       const used = account?.counters?.[metric] ?? 0;
+      if (unrestricted) {
+        return { used, limit: null, ratio: 0, tone: 'ok', label: METRIC_LABEL[metric], unlimited: true };
+      }
       const base = (account?.entitlements as any)?.[metric] ?? null;
       const bonus = account?.bonus?.[metric] ?? 0;
       const limit = base === null || base === undefined ? null : Number(base) + bonus;
       const ratio = usageRatio(used, limit);
-      return { used, limit, ratio, tone: usageTone(ratio), label: METRIC_LABEL[metric] };
+      return { used, limit, ratio, tone: usageTone(ratio), label: METRIC_LABEL[metric], unlimited: false };
     },
-    [account],
+    [account, unrestricted],
   );
 
   const track = useCallback(
