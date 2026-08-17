@@ -117,12 +117,12 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
         return false;
       }
     },
-    [user, call, account, setAccount, handleBlocked, openUpgrade],
+    [user, call, account, setAccount, handleBlocked, openUpgrade, unrestricted],
   );
 
   const can = useCallback(
-    (feature: keyof PlanEntitlements) => account?.entitlements?.[feature] === true,
-    [account],
+    (feature: keyof PlanEntitlements) => unrestricted || account?.entitlements?.[feature] === true,
+    [account, unrestricted],
   );
 
   const requireFeature = useCallback(
