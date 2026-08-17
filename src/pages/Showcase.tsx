@@ -176,7 +176,7 @@ const Showcase = () => {
                     <div className="mt-2 h-1.5 w-28 rounded-full bg-white/20" />
                     <div className="mt-2 h-1.5 w-16 rounded-full bg-white/20" />
                   </div>
-                  <p className="mt-2 text-xs font-ui text-slate-400">Preview layout {index + 1}</p>
+                  <p className="mt-2 text-xs font-ui text-slate-400">หน้าตัวอย่างด้านใน {index + 1}</p>
                 </div>
               ))}
             </div>

@@ -70,6 +70,49 @@ const groups = [
   },
 ];
 
+const thaiContext: Record<string, string> = {
+  Research: 'งานวิจัย',
+  Thesis: 'วิทยานิพนธ์',
+  Dissertation: 'ดุษฎีนิพนธ์',
+  'Literature Review': 'การทบทวนวรรณกรรม',
+  'Academic Report': 'รายงานวิชาการ',
+  'Journal Article': 'บทความวารสาร',
+  Teaching: 'สไลด์การสอน',
+  Business: 'งานนำเสนอธุรกิจ',
+  'Pitch Deck': 'พรีเซนต์ระดมทุน',
+  Conference: 'งานประชุมวิชาการ',
+  Training: 'สื่อฝึกอบรม',
+  'Picture Book': 'หนังสือภาพเด็ก',
+  'Story Book': 'นิทานเด็ก',
+  'Writing Practice': 'แบบฝึกเขียน',
+  'Activity Book': 'หนังสือกิจกรรม',
+  'Coloring Book': 'สมุดระบายสี',
+  'Learning Book': 'หนังสือเรียนรู้',
+  English: 'ภาษาอังกฤษ',
+  Thai: 'ภาษาไทย',
+  Chinese: 'ภาษาจีน',
+  Japanese: 'ภาษาญี่ปุ่น',
+  Bilingual: 'สองภาษา',
+  Vocabulary: 'คำศัพท์',
+  Conversation: 'บทสนทนา',
+  'Medical Guide': 'คู่มือสุขภาพ',
+  Anatomy: 'กายวิภาคศาสตร์',
+  'Health Education': 'สุขศึกษา',
+  'Medical Presentation': 'งานนำเสนอการแพทย์',
+  'Scientific Visual Guide': 'คู่มือภาพวิทยาศาสตร์',
+  'Legal Guide': 'คู่มือกฎหมาย',
+  'Legal Research': 'งานวิจัยกฎหมาย',
+  'Case Analysis': 'วิเคราะห์คดี',
+  'Legal Manual': 'คู่มือปฏิบัติกฎหมาย',
+  Novel: 'นิยาย',
+  'Short Story': 'เรื่องสั้น',
+  Manga: 'มังงะ',
+  Comic: 'การ์ตูน',
+  'Illustrated Story': 'เรื่องเล่าภาพประกอบ',
+  Fantasy: 'แฟนตาซี',
+  Mystery: 'สืบสวน',
+};
+
 const CreateWithKivora = () => {
   const [searchParams] = useSearchParams();
   const selected = searchParams.get('category') ?? 'all';
@@ -142,6 +185,7 @@ const CreateWithKivora = () => {
                       <PageMiniature title={item} label={group.title} variant={groupIndex + itemIndex} />
                       <div className="pt-4">
                         <h3 className="thai-heading-safe font-display text-base font-extrabold">{item}</h3>
+                        {thaiContext[item] && <p className="thai-safe mt-1 text-xs font-ui font-bold text-cyan-200">{thaiContext[item]}</p>}
                         <p className="thai-safe mt-1 text-xs text-slate-400">
                           โครงงานพร้อมปก โครงสร้างเนื้อหา ตัวอย่างหน้า และไฟล์ส่งออกที่เหมาะกับงานประเภทนี้
                         </p>
