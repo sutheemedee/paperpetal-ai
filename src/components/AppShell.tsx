@@ -9,8 +9,8 @@ import { useAuth } from '@/auth/AuthProvider';
 
 const UsageChip = () => {
   const { usage } = useEntitlements();
-  const { used, limit, ratio } = usage('aiPages');
-  const pct = Math.min(100, Math.round(ratio * 100));
+  const { used, limit, ratio, unlimited } = usage('aiPages');
+  const pct = unlimited ? 100 : Math.min(100, Math.round(ratio * 100));
   return (
     <Link
       to="/billing"
