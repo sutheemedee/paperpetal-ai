@@ -84,7 +84,7 @@ export const DesktopNav = () => {
 
 /** Persistent desktop sidebar — 248px, sidebar surface, subtle brand selection. */
 export const SidebarNav = () => {
-  const { account } = useAuth();
+  const { account, isAdmin } = useAuth();
   const { pathname } = useLocation();
   return (
     <nav className="flex flex-col gap-5 p-3">
@@ -116,7 +116,7 @@ export const SidebarNav = () => {
           })}
         </div>
       ))}
-      {account?.planCode !== 'unlimited' && (
+      {!(isAdmin || account?.planCode === 'unlimited') && (
       <Link
         to="/pricing"
         className="press mx-1 mt-1 rounded-xl border border-border bg-gradient-subtle p-3 text-xs font-ui text-secondary-foreground hover:border-strong"
