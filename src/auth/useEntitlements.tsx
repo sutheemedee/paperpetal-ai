@@ -31,8 +31,10 @@ interface Ctx {
 const EntitlementsContext = createContext<Ctx | null>(null);
 
 export const EntitlementsProvider = ({ children }: { children: React.ReactNode }) => {
-  const { account, setAccount, user } = useAuth();
+  const { account, setAccount, user, isAdmin } = useAuth();
   const [reason, setReason] = useState<UpgradeReason | null>(null);
+  /** Operator accounts (admin role or unlimited plan) ignore every credit/quota rule. */
+  const unrestricted = isAdmin || account?.planCode === 'unlimited';
 
   const call = useCallback(async (body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke('entitlements', { body });
