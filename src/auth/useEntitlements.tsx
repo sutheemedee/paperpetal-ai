@@ -23,7 +23,9 @@ interface Ctx {
   /** Feature gate from the plan entitlements. */
   can: (feature: keyof PlanEntitlements) => boolean;
   requireFeature: (feature: keyof PlanEntitlements, label: string) => boolean;
-  usage: (metric: UsageMetric) => { used: number; limit: number | null; ratio: number; tone: string; label: string };
+  usage: (metric: UsageMetric) => { used: number; limit: number | null; ratio: number; tone: string; label: string; unlimited: boolean };
+  /** True for admin / unlimited operator accounts — no credit caps at all. */
+  unrestricted: boolean;
   track: (event: string, props?: Record<string, unknown>) => void;
   openUpgrade: (reason: UpgradeReason) => void;
 }
