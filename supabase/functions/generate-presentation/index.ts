@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { generateText, jsonFromText } from "../_shared/ai-providers.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -81,9 +82,6 @@ serve(async (req) => {
       notesLevel = "short",
     } = await req.json();
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-
     const langLabel = language === "english" ? "English" : "Thai (ภาษาไทย)";
 
     const sourceBlock = sources.length
@@ -96,23 +94,19 @@ ${(s.chunks || []).map((c: any) => `- [${c.location || "n/a"}] ${c.heading || ""
           .join("\n\n")
       : "NO SOURCES - rely on general knowledge and say so in the notes.";
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          {
-            role: "system",
-            content: `You are KIVORA's AI Presentation Architect.
+    try {
+      const { text } = await generateText([
+        {
+          role: "system",
+          content: `You are KIVORA's AI Presentation Architect.
 Plan the storyline FIRST, then allocate slides, then write each slide. Never produce random slides without a narrative.
 Write all slide text in ${langLabel}.
 Source mode: ${sourceMode}. Cite as [Source NN · location] using ONLY the given source numbers and locations. Never invent citations, pages or timestamps.
 Return ONLY valid JSON, no markdown fences.`,
-          },
-          {
-            role: "user",
-            content: `TOPIC: ${topic}
+        },
+        {
+          role: "user",
+          content: `TOPIC: ${topic}
 PRESET: ${presetType} | AUDIENCE: ${audience} | PURPOSE: ${purpose} | TONE: ${tone}
 EXACT SLIDE COUNT REQUIRED: ${slideCount}
 SPEAKER NOTES: ${notesLevel}
@@ -140,24 +134,13 @@ Return JSON:
   }]
 }
 The "slides" array MUST contain exactly ${slideCount} items numbered 1..${slideCount}.`,
-          },
-        ],
-      }),
-    });
-
-    if (!res.ok) {
-      const t = await res.text();
-      console.error("AI gateway error", res.status, t);
-      if (res.status === 402) return json(fallbackDeck(topic, slideCount, audience, purpose, tone, language, sources));
-      if (res.status === 429) return json({ error: "ระบบ AI มีคำขอมากเกินไป กรุณาลองใหม่" }, 429);
-      return json({ error: "สร้างพรีเซนเทชันไม่สำเร็จ" }, 500);
+        },
+      ]);
+      return json(jsonFromText(text));
+    } catch (providerErr) {
+      console.error("AI provider fallback", providerErr);
+      return json(fallbackDeck(topic, slideCount, audience, purpose, tone, language, sources));
     }
-
-    const data = await res.json();
-    let content: string = data.choices?.[0]?.message?.content ?? "";
-    content = content.replace(/```json|```/g, "").trim();
-    const deck = JSON.parse(content.slice(content.indexOf("{"), content.lastIndexOf("}") + 1));
-    return json(deck);
   } catch (err) {
     console.error("generate-presentation error", err);
     return json({ error: (err as Error).message || "unknown error" }, 500);

@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { admin, corsHeaders, isAdmin, json, loadAccount, requireUser } from '../_shared/entitlements.ts';
+import { listAiProvidersForAdmin, maskSecret } from '../_shared/ai-providers.ts';
 
 /**
  * Provider-agnostic subscription lifecycle.
@@ -223,6 +224,74 @@ serve(async (req) => {
       if (price_thb !== undefined) patch.price_thb = Number(price_thb);
       await db.from('plans').update(patch).eq('code', planCode);
       await db.from('admin_audit_log').insert({ admin_id: user.id, action: 'update_plan', details: { planCode, patch } });
+      return json({ ok: true });
+    }
+
+    if (action === 'admin_ai_providers') {
+      const providers = await listAiProvidersForAdmin();
+      const { data: rawProviders } = await db
+        .from('ai_provider_settings')
+        .select('id, api_key');
+      const masked = providers.map((p: any) => ({
+        ...p,
+        key_mask: maskSecret(rawProviders?.find((r: any) => r.id === p.id)?.api_key),
+      }));
+      return json({ providers: masked });
+    }
+
+    if (action === 'admin_save_ai_provider') {
+      const provider = String(body.provider ?? '');
+      const label = String(body.label ?? provider).trim();
+      const apiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
+      const chatModel = String(body.chatModel ?? '').trim();
+      const imageModel = typeof body.imageModel === 'string' ? body.imageModel.trim() : null;
+      const baseUrl = typeof body.baseUrl === 'string' && body.baseUrl.trim() ? body.baseUrl.trim() : null;
+      const enabled = body.enabled !== false;
+      const priority = Math.max(1, Math.min(999, Number(body.priority ?? 100)));
+      const id = typeof body.id === 'string' && body.id ? body.id : null;
+
+      if (!['gemini', 'openrouter', 'lovable'].includes(provider)) return json({ error: 'invalid_provider' }, 400);
+      if (!chatModel) return json({ error: 'chat_model_required' }, 400);
+      if (!id && !apiKey) return json({ error: 'api_key_required' }, 400);
+
+      const patch: Record<string, unknown> = {
+        provider,
+        label,
+        base_url: baseUrl,
+        chat_model: chatModel,
+        image_model: imageModel,
+        enabled,
+        priority,
+        updated_at: new Date().toISOString(),
+      };
+      if (apiKey) patch.api_key = apiKey;
+
+      let savedId = id;
+      if (id) {
+        await db.from('ai_provider_settings').update(patch).eq('id', id);
+      } else {
+        const { data: inserted, error: insertError } = await db
+          .from('ai_provider_settings')
+          .insert(patch)
+          .select('id')
+          .single();
+        if (insertError) throw insertError;
+        savedId = inserted.id;
+      }
+
+      await db.from('admin_audit_log').insert({
+        admin_id: user.id,
+        action: id ? 'update_ai_provider' : 'create_ai_provider',
+        details: { id: savedId, provider, label, chatModel, enabled, priority },
+      });
+      return json({ ok: true, id: savedId });
+    }
+
+    if (action === 'admin_delete_ai_provider') {
+      const id = String(body.id ?? '');
+      if (!id) return json({ error: 'invalid_payload' }, 400);
+      await db.from('ai_provider_settings').delete().eq('id', id);
+      await db.from('admin_audit_log').insert({ admin_id: user.id, action: 'delete_ai_provider', details: { id } });
       return json({ ok: true });
     }
 

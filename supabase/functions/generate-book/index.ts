@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { generateText, jsonFromText } from "../_shared/ai-providers.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -53,9 +54,6 @@ serve(async (req) => {
 
   try {
     const { title, pageCount, language, styleProfile, sources = [], sourceMode = 'source_ai' } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-
     const buildSystemPrompt = (sp: any): string => {
       if (sp) {
         return `You are a professional book author.
@@ -91,19 +89,12 @@ ${sourceMode === 'source_only' ? '- SOURCE ONLY: do not add facts that are absen
 ${sourceMode === 'creative' ? '- CREATIVE: you may transform the source material creatively.' : ''}`
       : '';
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: buildSystemPrompt(styleProfile) },
-          {
-            role: "user",
-            content: `${sourceBlock}\n\nCreate a complete e-book on the topic: "${title}".
+    try {
+      const { text } = await generateText([
+        { role: "system", content: buildSystemPrompt(styleProfile) },
+        {
+          role: "user",
+          content: `${sourceBlock}\n\nCreate a complete e-book on the topic: "${title}".
 Language: ${langLabel}
 The book should have enough content to fill approximately ${pageCount} pages.
 
@@ -131,42 +122,16 @@ Return ONLY valid JSON (no markdown, no backticks):
   "backCoverText": string,
   "coverImagePrompt": "detailed English prompt for the book cover illustration — no text, symbolic, editorial style"
 }`
-          }
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
-      
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded, please try again later." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify(fallbackBook(title, pageCount, language, styleProfile, sources)), {
-          status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      return new Response(JSON.stringify({ error: "AI gateway error" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const data = await response.json();
-    const text = data.choices?.[0]?.message?.content || '';
-    
-    try {
-      const bookData = JSON.parse(text.replace(/```json|```/g, '').trim());
+        },
+      ]);
+      const bookData = jsonFromText(text);
       return new Response(JSON.stringify(bookData), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-    } catch (parseErr) {
-      console.error("Parse error:", parseErr, "Raw text:", text.slice(0, 500));
-      return new Response(JSON.stringify({ error: "Failed to parse book data" }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    } catch (providerErr) {
+      console.error("AI provider fallback:", providerErr);
+      return new Response(JSON.stringify(fallbackBook(title, pageCount, language, styleProfile, sources)), {
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
   } catch (e) {

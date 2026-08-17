@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { generateText } from "../_shared/ai-providers.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,8 +23,6 @@ serve(async (req) => {
 
   try {
     const { messages = [], sources = [], mode = "source_ai", language = "thai" } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const langLabel = language === "english" ? "English" : "Thai (ภาษาไทย)";
 
@@ -59,32 +58,10 @@ CITATION RULES:
 PROJECT SOURCES:
 ${sourceBlock}`;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        stream: true,
-        messages: [{ role: "system", content: system }, ...messages],
-      }),
-    });
-
-    if (!res.ok) {
-      const t = await res.text();
-      console.error("AI gateway error", res.status, t);
-      const msg =
-        res.status === 429
-          ? "ระบบ AI มีคำขอมากเกินไป กรุณาลองใหม่"
-          : res.status === 402
-            ? "AI gateway ไม่พร้อมใช้งาน ระบบไม่คิดเครดิตภายใน กรุณาลองใหม่"
-            : "AI ตอบกลับไม่สำเร็จ";
-      return new Response(JSON.stringify({ error: msg }), {
-        status: res.status,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    return new Response(res.body, {
+    const { text } = await generateText([{ role: "system", content: system }, ...messages]);
+    const encoder = new TextEncoder();
+    const body = encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\ndata: [DONE]\n\n`);
+    return new Response(body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
     });
   } catch (err) {

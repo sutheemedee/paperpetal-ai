@@ -28,6 +28,42 @@ interface AdminUser {
   subscription: { plan_code: string; status: string; current_period_end: string } | null;
 }
 
+interface AiProvider {
+  id: string;
+  provider: 'gemini' | 'openrouter' | 'lovable';
+  label: string;
+  base_url: string | null;
+  chat_model: string;
+  image_model: string | null;
+  enabled: boolean;
+  priority: number;
+  key_mask: string;
+}
+
+interface ProviderForm {
+  id: string;
+  provider: AiProvider['provider'];
+  label: string;
+  apiKey: string;
+  baseUrl: string;
+  chatModel: string;
+  imageModel: string;
+  enabled: boolean;
+  priority: number;
+}
+
+const emptyProvider: ProviderForm = {
+  id: '',
+  provider: 'gemini',
+  label: 'Gemini Primary',
+  apiKey: '',
+  baseUrl: '',
+  chatModel: 'gemini-2.5-flash',
+  imageModel: '',
+  enabled: true,
+  priority: 10,
+};
+
 const PLAN_CODES: PlanCode[] = ['free', 'starter', 'creator', 'unlimited'];
 const METRICS: UsageMetric[] = ['aiPages', 'aiImages', 'slides', 'exports'];
 
@@ -36,6 +72,8 @@ const Admin = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
+  const [providers, setProviders] = useState<AiProvider[]>([]);
+  const [providerForm, setProviderForm] = useState<ProviderForm>(emptyProvider);
 
   const call = async (body: Record<string, unknown>) => {
     const { data, error } = await supabase.functions.invoke('billing', { body });
@@ -45,9 +83,14 @@ const Admin = () => {
 
   const load = async () => {
     try {
-      const [m, u] = await Promise.all([call({ action: 'admin_metrics' }), call({ action: 'admin_users' })]);
+      const [m, u, p] = await Promise.all([
+        call({ action: 'admin_metrics' }),
+        call({ action: 'admin_users' }),
+        call({ action: 'admin_ai_providers' }),
+      ]);
       setMetrics(m);
       setUsers(u.users ?? []);
+      setProviders(p.providers ?? []);
     } catch {
       toast.error('โหลดข้อมูลผู้ดูแลไม่สำเร็จ');
     }
@@ -76,6 +119,45 @@ const Admin = () => {
 
   const suspend = async (u: AdminUser) => {
     await call({ action: 'admin_suspend', userId: u.id, suspended: !u.suspended }).catch(() => toast.error('ทำรายการไม่สำเร็จ'));
+    load();
+  };
+
+  const editProvider = (p: AiProvider) => {
+    setProviderForm({
+      id: p.id,
+      provider: p.provider,
+      label: p.label || p.provider,
+      apiKey: '',
+      baseUrl: p.base_url ?? '',
+      chatModel: p.chat_model,
+      imageModel: p.image_model ?? '',
+      enabled: p.enabled,
+      priority: p.priority,
+    });
+  };
+
+  const saveProvider = async () => {
+    await call({
+      action: 'admin_save_ai_provider',
+      id: providerForm.id || undefined,
+      provider: providerForm.provider,
+      label: providerForm.label,
+      apiKey: providerForm.apiKey,
+      baseUrl: providerForm.baseUrl,
+      chatModel: providerForm.chatModel,
+      imageModel: providerForm.imageModel,
+      enabled: providerForm.enabled,
+      priority: providerForm.priority,
+    }).catch(() => toast.error('บันทึก API provider ไม่สำเร็จ'));
+    toast.success('บันทึก API provider แล้ว');
+    setProviderForm(emptyProvider);
+    load();
+  };
+
+  const deleteProvider = async (id: string) => {
+    if (!window.confirm('ลบ API provider นี้ใช่ไหม?')) return;
+    await call({ action: 'admin_delete_ai_provider', id }).catch(() => toast.error('ลบ API provider ไม่สำเร็จ'));
+    toast.success('ลบ API provider แล้ว');
     load();
   };
 
@@ -142,6 +224,89 @@ const Admin = () => {
                     <span className="font-bold tabular-nums">{metrics?.exports ?? 0}</span>
                   </li>
                 </ul>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-border bg-card p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">AI API Providers</h2>
+                  <p className="mt-1 text-xs font-ui text-muted-foreground">Gemini / OpenRouter / Lovable เรียงตาม priority ต่ำสุดก่อน ใช้เป็น fallback อัตโนมัติ</p>
+                </div>
+                <button onClick={() => setProviderForm(emptyProvider)} className="min-h-10 rounded-full border border-border px-3 text-xs font-ui font-bold">
+                  เพิ่มใหม่
+                </button>
+              </div>
+
+              <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_0.9fr]">
+                <div className="flex flex-col gap-2">
+                  {providers.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-border bg-elevated p-3 text-xs font-ui text-muted-foreground">
+                      ยังไม่มี API provider ในฐานข้อมูล ระบบจะ fallback ไปใช้ ENV ถ้ามี เช่น GEMINI_API_KEY หรือ LOVABLE_API_KEY
+                    </div>
+                  )}
+                  {providers.map(p => (
+                    <div key={p.id} className="rounded-xl border border-border bg-elevated p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <div className="text-sm font-ui font-bold">{p.label || p.provider}</div>
+                          <div className="mt-1 text-[11px] font-ui text-muted-foreground">
+                            {p.provider} · {p.chat_model} · key {p.key_mask || 'not shown'} · priority {p.priority}
+                          </div>
+                        </div>
+                        <span className={`rounded-full px-2 py-1 text-[10px] font-ui font-bold ${p.enabled ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}`}>
+                          {p.enabled ? 'ON' : 'OFF'}
+                        </span>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button onClick={() => editProvider(p)} className="min-h-9 rounded-full border border-border px-3 text-[11px] font-ui font-bold">แก้ไข</button>
+                        <button onClick={() => deleteProvider(p.id)} className="min-h-9 rounded-full border border-destructive/50 px-3 text-[11px] font-ui font-bold text-destructive">ลบ</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rounded-xl border border-border bg-elevated p-3">
+                  <div className="grid gap-2">
+                    <label className="text-xs font-ui font-bold">
+                      Provider
+                      <select value={providerForm.provider} onChange={e => setProviderForm(f => ({ ...f, provider: e.target.value as any }))} className="mt-1 min-h-10 w-full rounded-xl border border-border bg-card px-3 text-xs">
+                        <option value="gemini">Gemini</option>
+                        <option value="openrouter">OpenRouter</option>
+                        <option value="lovable">Lovable</option>
+                      </select>
+                    </label>
+                    <label className="text-xs font-ui font-bold">
+                      Label
+                      <input value={providerForm.label} onChange={e => setProviderForm(f => ({ ...f, label: e.target.value }))} className="mt-1 min-h-10 w-full rounded-xl border border-border bg-card px-3 text-xs" />
+                    </label>
+                    <label className="text-xs font-ui font-bold">
+                      API Key {providerForm.id ? '(เว้นว่างถ้าไม่เปลี่ยน)' : ''}
+                      <input value={providerForm.apiKey} onChange={e => setProviderForm(f => ({ ...f, apiKey: e.target.value }))} type="password" className="mt-1 min-h-10 w-full rounded-xl border border-border bg-card px-3 text-xs" placeholder="AIza... / sk-or-... / lvbl..." />
+                    </label>
+                    <label className="text-xs font-ui font-bold">
+                      Chat Model
+                      <input value={providerForm.chatModel} onChange={e => setProviderForm(f => ({ ...f, chatModel: e.target.value }))} className="mt-1 min-h-10 w-full rounded-xl border border-border bg-card px-3 text-xs" placeholder="gemini-2.5-flash" />
+                    </label>
+                    <label className="text-xs font-ui font-bold">
+                      Base URL (OpenRouter/Lovable เท่านั้น)
+                      <input value={providerForm.baseUrl} onChange={e => setProviderForm(f => ({ ...f, baseUrl: e.target.value }))} className="mt-1 min-h-10 w-full rounded-xl border border-border bg-card px-3 text-xs" placeholder="https://openrouter.ai/api/v1" />
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <label className="text-xs font-ui font-bold">
+                        Priority
+                        <input value={providerForm.priority} onChange={e => setProviderForm(f => ({ ...f, priority: Number(e.target.value) || 100 }))} type="number" className="mt-1 min-h-10 w-full rounded-xl border border-border bg-card px-3 text-xs" />
+                      </label>
+                      <label className="flex items-end gap-2 text-xs font-ui font-bold">
+                        <input checked={providerForm.enabled} onChange={e => setProviderForm(f => ({ ...f, enabled: e.target.checked }))} type="checkbox" className="h-4 w-4" />
+                        เปิดใช้งาน
+                      </label>
+                    </div>
+                    <button onClick={saveProvider} className="mt-1 min-h-11 rounded-full bg-primary px-4 text-xs font-ui font-bold text-primary-foreground">
+                      บันทึก API Provider
+                    </button>
+                  </div>
+                </div>
               </div>
             </section>
 
