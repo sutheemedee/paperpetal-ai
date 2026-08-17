@@ -12,11 +12,12 @@ import { useKnowledge } from '@/knowledge/store';
 import { supabase } from '@/integrations/supabase/client';
 
 const QUICK_CREATE = [
-  { label: 'หนังสือ / eBook', to: '/book', icon: BookOpen },
-  { label: 'พรีเซนเทชัน', to: '/present', icon: Presentation },
-  { label: 'คู่มือ / Manual', to: '/book', icon: FileText },
-  { label: 'มังงะ / คอมิก', to: '/book', icon: Sparkles },
-  { label: 'รายงาน / บทความ', to: '/book', icon: Wand2 },
+  { label: 'หนังสือ / eBook', to: '/create?category=book', icon: BookOpen },
+  { label: 'พรีเซนเทชัน', to: '/create?category=presentation', icon: Presentation },
+  { label: 'คู่มือ / Manual', to: '/create?category=manual', icon: FileText },
+  { label: 'มังงะ / คอมิก', to: '/create?category=manga', icon: Sparkles },
+  { label: 'รายงาน / บทความ', to: '/create?category=report', icon: Wand2 },
+  { label: 'เทมเพลต', to: '/templates', icon: GraduationCap },
   { label: 'คลังความรู้', to: '/knowledge', icon: Layers },
 ];
 
@@ -64,8 +65,8 @@ const Dashboard = () => {
               {projectLimit === null ? ' (ไม่จำกัด)' : ` / ${projectLimit}`} · รีเซ็ตสิทธิ์ {nextReset}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Link to="/book" className="flex min-h-11 items-center rounded-full bg-gradient-ai px-4 text-xs font-ui font-bold text-primary-foreground">
-                สร้างงานใหม่
+              <Link to="/create" className="flex min-h-11 items-center rounded-full bg-gradient-ai px-4 text-xs font-ui font-bold text-primary-foreground">
+                วันนี้คุณอยากสร้างอะไร?
               </Link>
               <Link to="/knowledge" className="flex min-h-11 items-center rounded-full border border-border px-4 text-xs font-ui font-bold">
                 เพิ่มแหล่งข้อมูล

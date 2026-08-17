@@ -14,6 +14,8 @@ import Pricing from "./pages/Pricing.tsx";
 import Billing from "./pages/Billing.tsx";
 import Admin from "./pages/Admin.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
+import Templates from "./pages/Templates.tsx";
+import Create from "./pages/Create.tsx";
 import SignIn from "./pages/auth/SignIn.tsx";
 import SignUp from "./pages/auth/SignUp.tsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.tsx";
@@ -53,6 +55,8 @@ const App = () => (
                 <Route path="/onboarding" element={guarded(<Onboarding />)} />
                 <Route path="/dashboard" element={guarded(<Dashboard />)} />
                 <Route path="/projects" element={guarded(<Projects />)} />
+                <Route path="/templates" element={guarded(<Templates />)} />
+                <Route path="/create" element={guarded(<Create />)} />
                 <Route path="/billing" element={guarded(<Billing />)} />
                 <Route path="/knowledge" element={guarded(<Knowledge />)} />
                 <Route path="/chat" element={guarded(<Chat />)} />
