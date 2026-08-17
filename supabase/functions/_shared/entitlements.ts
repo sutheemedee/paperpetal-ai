@@ -28,7 +28,7 @@ export async function requireUser(req: Request) {
   return { user: data.user, error: null };
 }
 
-const OPERATOR_ROLES = ['admin', 'superadmin', 'subperadmin'];
+const OPERATOR_ROLES = ['admin', 'superadmin', 'supperadmin', 'subperadmin'];
 
 export async function isAdmin(userId: string) {
   const { data } = await admin().from('user_roles').select('role').eq('user_id', userId).in('role', OPERATOR_ROLES);

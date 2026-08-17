@@ -3,7 +3,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { FALLBACK_PLANS, PlanCode, PlanEntitlements, UsageMetric } from '@/lib/plans';
 
-const OPERATOR_ROLES = new Set(['admin', 'superadmin', 'subperadmin']);
+const OPERATOR_ROLES = new Set(['admin', 'superadmin', 'supperadmin', 'subperadmin']);
 
 export interface AccountState {
   planCode: PlanCode;
