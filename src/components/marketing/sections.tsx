@@ -33,7 +33,7 @@ const OUTPUT_CHIPS = [
   { icon: FileText, label: 'Report' },
 ];
 
-/** Product mockup: sources → PaperPetal AI → outputs, with animated connectors. */
+/** Product mockup: sources → KIVORA → outputs, with animated connectors. */
 export const HeroFlow = () => (
   <div className="relative w-full overflow-hidden rounded-3xl border border-border bg-card/80 p-4 md:p-6">
     <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-primary/25 blur-3xl" />
@@ -298,7 +298,7 @@ export const SourceGrounded = () => (
       </p>
     </div>
     <div className="rounded-3xl border border-border bg-card p-4">
-      <p className="font-ui text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Ask PaperPetal</p>
+      <p className="font-ui text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Ask KIVORA</p>
       <div className="mt-3 rounded-2xl bg-background-deep p-3 font-body text-xs leading-6">
         <p className="text-muted-foreground">คำถาม: ข้อจำกัดหลักของวิธีที่กล่าวในคลิปคืออะไร</p>
         <p className="mt-2">

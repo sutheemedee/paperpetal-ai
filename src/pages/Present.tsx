@@ -243,7 +243,7 @@ const Present = () => {
 
   return (
     <StudioLayout
-      title="PaperPetal Present"
+      title="KIVORA Present"
       subtitle={deck ? `${slides.length} สไลด์ · ${preset}` : `ใช้ ${activeSources.length} แหล่งข้อมูล`}
       left={{ label: 'สไลด์', content: navigator }}
       right={{ label: 'AI Director', content: director }}

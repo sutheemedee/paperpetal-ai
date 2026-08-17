@@ -9,7 +9,7 @@ import Seo, { SITE_URL, faqJsonLd } from '@/components/Seo';
 
 const FEATURES = [
   { icon: Layers, title: 'Knowledge Engine', body: 'รวม YouTube, PDF, เว็บ และเอกสารของคุณให้เป็นคลังความรู้ที่ AI อ้างอิงได้' },
-  { icon: MessageCircle, title: 'Ask PaperPetal', body: 'ถาม-ตอบจากแหล่งข้อมูลจริง พร้อมอ้างอิงกลับไปยังต้นทาง' },
+  { icon: MessageCircle, title: 'Ask KIVORA', body: 'ถาม-ตอบจากแหล่งข้อมูลจริง พร้อมอ้างอิงกลับไปยังต้นทาง' },
   { icon: BookOpen, title: 'Book & Manga Studio', body: 'เขียน จัดหน้า และวาดภาพประกอบด้วย AI ตั้งแต่ปกจนถึงหน้าสุดท้าย' },
   { icon: Presentation, title: 'Presentation Studio', body: 'เปลี่ยนความรู้เป็นสไลด์พร้อมสคริปต์ผู้พูด ส่งออกเป็น PPTX แก้ไขได้' },
   { icon: FileDown, title: 'Multi-format Export', body: 'PDF พร้อมพิมพ์ · DOCX · EPUB 3 · PPTX · ปก PNG ความละเอียดสูง' },
@@ -19,11 +19,11 @@ const FEATURES = [
 /** AEO: คำถามที่ answer engine (Google AI, ChatGPT, Perplexity) ดึงไปตอบได้ตรง ๆ */
 const FAQS = [
   {
-    q: 'PaperPetal AI คืออะไร?',
-    a: 'PaperPetal AI คือสตูดิโอ AI ภาษาไทยที่เปลี่ยนแหล่งข้อมูลของคุณ เช่น คลิป YouTube ไฟล์ PDF เว็บไซต์ และเอกสาร Word ให้เป็นคลังความรู้ แล้วใช้ AI เขียนหนังสือ e-book คู่มือ บทความ มังงะ และพรีเซนเทชันพร้อมการอ้างอิงแหล่งที่มา',
+    q: 'KIVORA คืออะไร?',
+    a: 'KIVORA คือสตูดิโอ AI ภาษาไทยที่เปลี่ยนแหล่งข้อมูลของคุณ เช่น คลิป YouTube ไฟล์ PDF เว็บไซต์ และเอกสาร Word ให้เป็นคลังความรู้ แล้วใช้ AI เขียนหนังสือ e-book คู่มือ บทความ มังงะ และพรีเซนเทชันพร้อมการอ้างอิงแหล่งที่มา',
   },
   {
-    q: 'สร้าง e-book ด้วย AI ใน PaperPetal ทำอย่างไร?',
+    q: 'สร้าง e-book ด้วย AI ใน KIVORA ทำอย่างไร?',
     a: 'เพิ่มแหล่งข้อมูลในเมนูแหล่งข้อมูล เลือกล็อกแหล่งข้อมูลที่ต้องการ ตั้งชื่อเรื่องและจำนวนหน้าในเมนูสร้าง จากนั้น AI จะร่างสารบัญ เขียนเนื้อหาทุกบท และสร้างภาพประกอบกับปกให้อัตโนมัติ ก่อนส่งออกเป็นไฟล์',
   },
   {
@@ -32,7 +32,7 @@ const FAQS = [
   },
   {
     q: 'ต้องมี API Key ของ AI เองไหม?',
-    a: 'ไม่ต้อง PaperPetal AI มี AI ในตัวพร้อมใช้งานทันทีหลังสมัคร ทุกแผนรวมโควตาการเขียนและสร้างภาพด้วย AI ไว้แล้ว',
+    a: 'ไม่ต้อง KIVORA มี AI ในตัวพร้อมใช้งานทันทีหลังสมัคร ทุกแผนรวมโควตาการเขียนและสร้างภาพด้วย AI ไว้แล้ว',
   },
   {
     q: 'ราคาเท่าไหร่ และมีแผนฟรีไหม?',
@@ -53,14 +53,14 @@ const Home = () => {
     <div className="min-h-[100dvh] bg-background">
       <Seo
         path="/"
-        title="PaperPetal AI — สร้าง E-Book, หนังสือ และพรีเซนเทชันด้วย AI"
+        title="KIVORA — สร้าง E-Book, หนังสือ และพรีเซนเทชันด้วย AI"
         description="เปลี่ยน YouTube, PDF และเว็บไซต์ให้เป็นคลังความรู้ แล้วให้ AI เขียนหนังสือ e-book มังงะ และสไลด์พร้อมอ้างอิง ส่งออก PDF, DOCX, EPUB, PPTX เริ่มใช้ฟรี"
         jsonLd={[
           faqJsonLd(FAQS),
           {
             '@context': 'https://schema.org',
             '@type': 'SoftwareApplication',
-            name: 'PaperPetal AI',
+            name: 'KIVORA',
             applicationCategory: 'BusinessApplication',
             operatingSystem: 'Web',
             url: SITE_URL,
@@ -81,7 +81,7 @@ const Home = () => {
       <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-background/90 px-4 py-2.5 backdrop-blur">
         <Link to="/" className="flex items-center gap-2">
           <PetalMark className="h-8 w-8" />
-          <span className="font-display text-sm font-bold md:text-base">PaperPetal AI</span>
+          <span className="font-display text-sm font-bold md:text-base">KIVORA</span>
         </Link>
         <nav className="flex items-center gap-2">
           <Link to="/pricing" className="hidden min-h-11 items-center px-3 text-xs font-ui font-bold text-muted-foreground sm:flex">
@@ -194,7 +194,7 @@ const Home = () => {
       </main>
 
       <footer className="border-t border-border px-4 py-6 text-center text-[11px] font-ui text-muted-foreground">
-        PaperPetal AI · AI Knowledge, Book & Presentation Studio
+        KIVORA · AI Knowledge, Book & Presentation Studio
       </footer>
     </div>
   );

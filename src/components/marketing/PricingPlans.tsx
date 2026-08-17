@@ -6,7 +6,7 @@ const PLAN_FEATURES: Record<PlanCode, string[]> = {
   free: ['3 โปรเจกต์', '30 AI Pages', '10 AI Images', '10 สไลด์พรีเซนเทชัน', '3 แหล่งข้อมูล / โปรเจกต์', 'ส่งออกสำเร็จ 1 ครั้ง / วัน', 'AI Chat พื้นฐาน', 'พรีวิว PDF'],
   starter: ['10 โปรเจกต์', '300 AI Pages / เดือน', '100 AI Images', '100 สไลด์', '10 แหล่งข้อมูล / โปรเจกต์', 'ส่งออก 20 ครั้ง / เดือน', 'PDF · DOCX · EPUB', 'พรีเซนเทชันพื้นฐาน', 'ไม่มีลายน้ำ'],
   creator: ['30 โปรเจกต์', '1,000 AI Pages', '400 AI Images', '400 สไลด์', '30 แหล่งข้อมูล / โปรเจกต์', 'ส่งออก 100 ครั้ง', 'PDF · DOCX · EPUB', 'PPTX แก้ไขต่อได้', 'YouTube Knowledge', 'แหล่งข้อมูลขั้นสูง', 'ภาพสมจริงระดับสูง', 'Manga / Comic', 'Visual DNA', 'Character DNA', 'การอ้างอิงขั้นสูง', 'คิวสร้างงานลำดับต้น'],
-  unlimited: ['โปรเจกต์ไม่จำกัด', '3,000 AI Pages (Fair Use)', '1,200 AI Images (Fair Use)', '1,200 สไลด์ (Fair Use)', '100 แหล่งข้อมูล / โปรเจกต์', 'ส่งออกแบบ Fair Use', 'ทุกอย่างในแผน Creator', 'งานวิจัยขั้นสูง', 'คุณภาพการสร้างสูงสุด', 'หนังสือขนาดใหญ่', 'พรีเซนเทชันขนาดใหญ่', 'Manga ขั้นสูง', 'Priority Queue', 'Priority Support'],
+  unlimited: ['โปรเจกต์ไม่จำกัด', 'AI Pages ไม่จำกัด', 'AI Images ไม่จำกัด', 'สไลด์ไม่จำกัด', 'แหล่งข้อมูลไม่จำกัด', 'ส่งออกไม่จำกัด', 'ทุกอย่างในแผน Creator', 'งานวิจัยขั้นสูง', 'คุณภาพการสร้างสูงสุด', 'หนังสือขนาดใหญ่', 'พรีเซนเทชันขนาดใหญ่', 'Manga ขั้นสูง', 'Priority Queue', 'Priority Support'],
 };
 
 interface CardsProps {
@@ -37,7 +37,7 @@ export const PricingCards = ({ plans = FALLBACK_PLANS, busy, onChoose, currentPl
             </p>
             {plan.code === 'unlimited' && (
               <p className="mt-1 font-ui text-[11px] text-muted-foreground">
-                โปรเจกต์ไม่จำกัด พร้อมโควตา AI แบบ Fair Use เพื่อความเป็นธรรมกับผู้ใช้ทุกคน
+                โปรเจกต์ แหล่งข้อมูล AI Pages ภาพ สไลด์ และการส่งออกไม่จำกัด
               </p>
             )}
             <ul className="mt-4 flex flex-1 flex-col gap-1.5">
@@ -70,10 +70,10 @@ export const PricingCards = ({ plans = FALLBACK_PLANS, busy, onChoose, currentPl
 type Cell = string | boolean;
 const ROWS: { label: string; values: Record<PlanCode, Cell> }[] = [
   { label: 'โปรเจกต์', values: { free: '3', starter: '10', creator: '30', unlimited: 'ไม่จำกัด' } },
-  { label: 'AI Pages', values: { free: '30', starter: '300', creator: '1,000', unlimited: '3,000 (Fair Use)' } },
-  { label: 'AI Images', values: { free: '10', starter: '100', creator: '400', unlimited: '1,200 (Fair Use)' } },
-  { label: 'สไลด์', values: { free: '10', starter: '100', creator: '400', unlimited: '1,200 (Fair Use)' } },
-  { label: 'แหล่งข้อมูล / โปรเจกต์', values: { free: '3', starter: '10', creator: '30', unlimited: '100' } },
+  { label: 'AI Pages', values: { free: '30', starter: '300', creator: '1,000', unlimited: 'ไม่จำกัด' } },
+  { label: 'AI Images', values: { free: '10', starter: '100', creator: '400', unlimited: 'ไม่จำกัด' } },
+  { label: 'สไลด์', values: { free: '10', starter: '100', creator: '400', unlimited: 'ไม่จำกัด' } },
+  { label: 'แหล่งข้อมูล / โปรเจกต์', values: { free: '3', starter: '10', creator: '30', unlimited: 'ไม่จำกัด' } },
   { label: 'AI Chat', values: { free: 'พื้นฐาน', starter: 'มาตรฐาน', creator: 'ขั้นสูง', unlimited: 'ขั้นสูง' } },
   { label: 'หนังสือ / eBook', values: { free: true, starter: true, creator: true, unlimited: true } },
   { label: 'พรีเซนเทชัน', values: { free: 'พรีวิว', starter: 'พื้นฐาน', creator: 'เต็มรูปแบบ', unlimited: 'เต็มรูปแบบ' } },
@@ -87,7 +87,7 @@ const ROWS: { label: string; values: Record<PlanCode, Cell> }[] = [
   { label: 'ภาพสมจริงระดับสูง', values: { free: false, starter: false, creator: true, unlimited: true } },
   { label: 'Visual DNA', values: { free: false, starter: false, creator: true, unlimited: true } },
   { label: 'Character DNA', values: { free: false, starter: false, creator: true, unlimited: true } },
-  { label: 'จำนวนการส่งออก', values: { free: '1 / วัน', starter: '20 / เดือน', creator: '100 / เดือน', unlimited: 'Fair Use' } },
+  { label: 'จำนวนการส่งออก', values: { free: '1 / วัน', starter: '20 / เดือน', creator: '100 / เดือน', unlimited: 'ไม่จำกัด' } },
   { label: 'คิวลำดับต้น / การสนับสนุน', values: { free: false, starter: false, creator: 'Priority', unlimited: 'Priority + Support' } },
 ];
 

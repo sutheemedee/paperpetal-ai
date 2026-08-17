@@ -24,7 +24,7 @@ const UsageChip = () => {
           <span className="text-muted-foreground"> / {unlimited ? '∞' : limit === null ? 'Fair Use' : limit.toLocaleString()}</span>
         </span>
         <span className="h-1.5 w-12 overflow-hidden rounded-full bg-surface-hover">
-          <span className="block h-full rounded-full bg-gradient-paperpetal" style={{ width: `${pct}%` }} />
+          <span className="block h-full rounded-full bg-gradient-ai" style={{ width: `${pct}%` }} />
         </span>
       </span>
     </Link>
@@ -41,9 +41,9 @@ const AppShell = ({ children, title }: { children: React.ReactNode; title?: stri
         <Link to="/dashboard" className="flex min-h-16 items-center gap-2 px-4">
           <PetalMark className="h-8 w-8 shrink-0" />
           <span className="min-w-0">
-            <span className="block truncate font-display text-sm font-bold">PaperPetal AI</span>
+            <span className="block truncate font-display text-sm font-bold tracking-[0.18em]">KIVORA</span>
             <span className="block truncate text-[10px] font-ui uppercase tracking-[0.14em] text-muted-foreground">
-              {account?.planName ?? 'Knowledge Studio'}
+              {account?.planName ?? 'Knowledge Into Creation'}
             </span>
           </span>
         </Link>
@@ -55,10 +55,10 @@ const AppShell = ({ children, title }: { children: React.ReactNode; title?: stri
         <header className="sticky top-0 z-30 flex min-h-16 items-center justify-between gap-2 border-b border-border bg-background/90 px-3 py-2 pt-[max(0.5rem,env(safe-area-inset-top))] backdrop-blur md:px-4">
           <Link to="/dashboard" className="flex min-w-0 items-center gap-2 lg:hidden">
             <PetalMark className="h-8 w-8 shrink-0" />
-            <span className="truncate font-display text-sm font-bold md:text-base">{title || 'PaperPetal AI'}</span>
+            <span className="truncate font-display text-sm font-bold md:text-base">{title || 'KIVORA'}</span>
           </Link>
           <span className="hidden min-w-0 truncate font-display text-base font-bold lg:block">
-            {title || 'PaperPetal AI'}
+            {title || 'KIVORA'}
           </span>
 
           <div className="flex items-center gap-2">
@@ -74,7 +74,7 @@ const AppShell = ({ children, title }: { children: React.ReactNode; title?: stri
             {user && !(isAdmin || account?.planCode === 'unlimited') && (
               <Link
                 to="/pricing"
-                className="press hidden min-h-10 items-center gap-1.5 rounded-xl bg-gradient-paperpetal px-3 text-xs font-ui font-bold text-primary-foreground shadow-[var(--shadow-glow)] sm:flex"
+                className="press hidden min-h-10 items-center gap-1.5 rounded-xl bg-gradient-ai px-3 text-xs font-ui font-bold text-primary-foreground shadow-[var(--shadow-glow)] sm:flex"
               >
                 <Sparkles className="h-3.5 w-3.5" /> อัปเกรด
               </Link>

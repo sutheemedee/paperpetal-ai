@@ -3,6 +3,8 @@ import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { FALLBACK_PLANS, PlanCode, PlanEntitlements, UsageMetric } from '@/lib/plans';
 
+const OPERATOR_ROLES = new Set(['admin', 'superadmin', 'subperadmin']);
+
 export interface AccountState {
   planCode: PlanCode;
   planName: string;
@@ -73,7 +75,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       supabase.from('user_roles').select('role').eq('user_id', uid),
     ]);
     setProfile((prof as Profile) ?? null);
-    setIsAdmin(!!roles?.some(r => r.role === 'admin'));
+    setIsAdmin(!!roles?.some(r => OPERATOR_ROLES.has(String(r.role))));
 
     const { data, error } = await supabase.functions.invoke('entitlements', { body: { action: 'state' } });
     if (!error && data?.account) {

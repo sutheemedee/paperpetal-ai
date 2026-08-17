@@ -57,8 +57,8 @@ const Pricing = () => {
     <AppShell>
       <Seo
         path="/pricing"
-        title="ราคาและแผนการใช้งาน | PaperPetal AI"
-        description="เปรียบเทียบแผน PaperPetal AI: Free Trial ใช้ฟรี, Starter 399 บาท, Creator 799 บาท และ Unlimited 1,490 บาท ต่อเดือน พร้อมโควตา AI และการส่งออก PDF, DOCX, EPUB, PPTX"
+        title="ราคาและแผนการใช้งาน | KIVORA"
+        description="เปรียบเทียบแผน KIVORA: Free Trial ใช้ฟรี, Starter 399 บาท, Creator 799 บาท และ Unlimited 1,490 บาท ต่อเดือน พร้อมโควตา AI และการส่งออก PDF, DOCX, EPUB, PPTX"
         jsonLd={[
           breadcrumbJsonLd([
             { name: 'หน้าแรก', path: '/' },
@@ -67,7 +67,7 @@ const Pricing = () => {
           {
             '@context': 'https://schema.org',
             '@type': 'Product',
-            name: 'PaperPetal AI',
+            name: 'KIVORA',
             description: 'AI Knowledge, Book & Presentation Studio',
             url: `${SITE_URL}/pricing`,
             offers: FALLBACK_PLANS.map(p => ({

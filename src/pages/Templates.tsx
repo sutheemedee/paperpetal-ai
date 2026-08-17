@@ -64,7 +64,7 @@ const Templates = () => {
   return (
     <AppShell title="คลังเทมเพลต">
       <Seo
-        title="คลังเทมเพลต | PaperPetal AI"
+        title="คลังเทมเพลต | KIVORA"
         description="เลือกเทมเพลตหนังสือ คู่มือ คอร์ส พรีเซนเทชัน รายงาน นิยาย มังงะ และบทภาพยนตร์ พร้อมโครงสร้างและสไตล์สำเร็จรูป"
         path="/templates"
         noindex

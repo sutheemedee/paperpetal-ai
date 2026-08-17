@@ -25,7 +25,7 @@ const AddSourceDialog = ({
   initialType?: SourceType;
 }) => {
   const { addSource, sources } = useKnowledge();
-  const { consume, requireFeature, openUpgrade } = useEntitlements();
+  const { consume, requireFeature, openUpgrade, unrestricted } = useEntitlements();
   const { account } = useAuth();
   const [tab, setTab] = useState<SourceType>(initialType ?? 'youtube');
   useEffect(() => {
@@ -37,7 +37,7 @@ const AddSourceDialog = ({
   const [busy, setBusy] = useState(false);
 
   const submit = async (payload: { sourceType: SourceType; url?: string; text?: string; title?: string }) => {
-    const maxSources = account?.entitlements?.sourcesPerProject ?? null;
+    const maxSources = unrestricted ? null : (account?.entitlements?.sourcesPerProject ?? null);
     if (maxSources !== null && sources.length >= maxSources) {
       openUpgrade({
         kind: 'quota',

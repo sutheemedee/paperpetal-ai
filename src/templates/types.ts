@@ -1,4 +1,4 @@
-/** PaperPetal Template Engine — templates are reusable generation systems, not skins. */
+/** KIVORA Template Engine — templates are reusable generation systems, not skins. */
 
 export type TemplateCategory =
   | 'book'

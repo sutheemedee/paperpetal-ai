@@ -48,7 +48,7 @@ ${(s.chunks || []).map((c: any) => `- [${c.location || 'n/a'}] ${c.heading || ''
         messages: [
           {
             role: 'system',
-            content: `You are PaperPetal's AI Presentation Architect.
+            content: `You are KIVORA's AI Presentation Architect.
 Plan the storyline FIRST, then allocate slides, then write each slide. Never produce random slides without a narrative.
 Write all slide text in ${langLabel}.
 Source mode: ${sourceMode}. Cite as [Source NN · location] using ONLY the given source numbers and locations. Never invent citations, pages or timestamps.

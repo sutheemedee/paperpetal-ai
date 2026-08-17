@@ -85,7 +85,7 @@ const BookPageCanvas = ({
           </div>
         )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-8">
-          <p className="font-ui text-sm uppercase tracking-[0.25em] text-[#FFD600]">{bookData.author}</p>
+          <p className="font-ui text-sm uppercase tracking-[0.25em] text-[#00CFFF]">{bookData.author}</p>
           <h2 className="mt-2 font-heading text-3xl font-bold text-white">
             {entry.kind === 'cover' ? bookData.title : 'ปกหลัง'}
           </h2>

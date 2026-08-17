@@ -26,7 +26,7 @@ import UsageBar from '@/components/account/UsageBar';
 
 const PAGE_COUNTS = [10, 20, 30, 50, 100];
 const COLOR_THEMES = [
-  { color: '#FFD600', label: 'yellow and gold' },
+  { color: '#735CFF', label: 'violet prism' },
   { color: '#4FC3F7', label: 'blue and sky' },
   { color: '#A5D6A7', label: 'green and nature' },
   { color: '#EF9A9A', label: 'red and rose' },
@@ -51,7 +51,7 @@ const Index = () => {
   const [title, setTitle] = useState('');
   const [pageCount, setPageCount] = useState(20);
   const [selectedSize, setSelectedSize] = useState<BookSize>(BOOK_SIZES[1]);
-  const [colorTheme, setColorTheme] = useState('yellow and gold');
+  const [colorTheme, setColorTheme] = useState('violet prism');
   const [coverStyle, setCoverStyle] = useState('Modern');
   const [language, setLanguage] = useState('thai');
   const [styleProfile, setStyleProfile] = useState<StyleProfile | null>(null);
@@ -375,7 +375,7 @@ const Index = () => {
   return (
     <>
       <StudioLayout
-        title={bookData ? bookData.title : 'PaperPetal Write'}
+        title={bookData ? bookData.title : 'KIVORA Write'}
         subtitle={bookData ? `${pages.length} หน้า · ${selectedSize.label}` : 'หนังสือ · eBook · คู่มือ'}
         left={{ label: 'บท / หน้า', content: navigator }}
         right={{ label: 'AI Director', content: director }}

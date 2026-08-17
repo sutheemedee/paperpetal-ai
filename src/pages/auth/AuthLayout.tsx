@@ -21,7 +21,7 @@ const AuthLayout = ({
       <section className="hidden lg:block">
         <Link to="/" className="flex items-center gap-2">
           <PetalMark className="h-9 w-9" />
-          <span className="font-display text-base font-bold">PaperPetal AI</span>
+          <span className="font-display text-base font-bold">KIVORA</span>
         </Link>
         <h2 className="mt-8 font-display text-4xl font-extrabold leading-tight">
           <span className="text-gradient-ai">{headline}</span>
@@ -51,7 +51,7 @@ const AuthLayout = ({
       <section className="mx-auto w-full max-w-md">
         <div className="mb-5 flex items-center gap-2 lg:hidden">
           <PetalMark className="h-9 w-9" />
-          <span className="font-display text-base font-bold">PaperPetal AI</span>
+          <span className="font-display text-base font-bold">KIVORA</span>
         </div>
         <div className="rounded-3xl border border-border bg-card p-5 shadow-[var(--shadow-card)] md:p-6">{children}</div>
         <p className="mt-4 text-center text-[11px] font-ui text-muted-foreground">

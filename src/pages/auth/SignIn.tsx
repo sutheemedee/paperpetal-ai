@@ -28,9 +28,9 @@ const SignIn = () => {
   };
 
   return (
-    <AuthLayout headline="CREATE FROM KNOWLEDGE." sub="เปลี่ยนแหล่งข้อมูล ไอเดีย และงานวิจัยของคุณให้เป็นหนังสือ พรีเซนเทชัน และเรื่องเล่าภาพด้วย AI" seo={{ title: "เข้าสู่ระบบ | PaperPetal AI", description: "เข้าสู่ระบบ PaperPetal AI เพื่อสร้าง e-book หนังสือ และพรีเซนเทชันด้วย AI จากแหล่งข้อมูลของคุณ", path: "/auth/sign-in" }}>
+    <AuthLayout headline="CREATE FROM KNOWLEDGE." sub="เปลี่ยนแหล่งข้อมูล ไอเดีย และงานวิจัยของคุณให้เป็นหนังสือ พรีเซนเทชัน และเรื่องเล่าภาพด้วย AI" seo={{ title: "เข้าสู่ระบบ | KIVORA", description: "เข้าสู่ระบบ KIVORA เพื่อสร้าง e-book หนังสือ และพรีเซนเทชันด้วย AI จากแหล่งข้อมูลของคุณ", path: "/auth/sign-in" }}>
       <h1 className="font-display text-xl font-bold">เข้าสู่ระบบ</h1>
-      <p className="mt-1 text-xs font-ui text-muted-foreground">ยินดีต้อนรับกลับสู่ PaperPetal AI</p>
+      <p className="mt-1 text-xs font-ui text-muted-foreground">ยินดีต้อนรับกลับสู่ KIVORA</p>
 
       <div className="mt-4">
         <GoogleButton next={next} />
@@ -76,7 +76,7 @@ const SignIn = () => {
       </form>
 
       <p className="mt-4 text-xs font-ui text-muted-foreground">
-        ยังไม่มีบัญชี PaperPetal?{' '}
+        ยังไม่มีบัญชี KIVORA?{' '}
         <Link to="/auth/sign-up" className="font-bold text-primary">เริ่มใช้ฟรี</Link>
       </p>
     </AuthLayout>

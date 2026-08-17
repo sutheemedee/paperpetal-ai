@@ -40,7 +40,7 @@ const PublicFooter = () => (
       <div>
         <div className="flex items-center gap-2">
           <PetalMark className="h-8 w-8" />
-          <span className="font-display text-sm font-bold">PaperPetal AI</span>
+          <span className="font-display text-sm font-bold">KIVORA</span>
         </div>
         <p className="mt-2 max-w-xs text-xs font-ui text-muted-foreground">
           AI Knowledge, Book &amp; Presentation Studio — เปลี่ยนแหล่งข้อมูลของคุณให้เป็นผลงานที่พร้อมเผยแพร่
@@ -62,7 +62,7 @@ const PublicFooter = () => (
       ))}
     </div>
     <div className="border-t border-border px-4 py-4 text-center text-[11px] font-ui text-muted-foreground">
-      © {new Date().getFullYear()} PaperPetal AI · ตัวอย่างผลงานทั้งหมดในเว็บไซต์นี้เป็นโปรเจกต์สาธิตที่สร้างด้วย AI
+      © {new Date().getFullYear()} KIVORA · ตัวอย่างผลงานทั้งหมดในเว็บไซต์นี้เป็นโปรเจกต์สาธิตที่สร้างด้วย AI
     </div>
   </footer>
 );

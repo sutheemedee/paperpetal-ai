@@ -10,7 +10,7 @@ const content: DemoContent = {
       title: 'AI FOR SMALL BUSINESS',
       subtitle: 'คู่มือฉบับเร็ว สำหรับร้านและธุรกิจขนาดเล็ก',
       image: cover,
-      blocks: [{ type: 'p', text: 'สร้างด้วย PaperPetal AI · ตัวอย่างสาธิต (SAMPLE PROJECT)' }],
+      blocks: [{ type: 'p', text: 'สร้างด้วย KIVORA · ตัวอย่างสาธิต (SAMPLE PROJECT)' }],
     },
     {
       label: 'บทนำ',

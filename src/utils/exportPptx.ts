@@ -18,7 +18,7 @@ export interface Deck {
   slides: Slide[];
 }
 
-const YELLOW = 'FFD600';
+const YELLOW = '00CFFF';
 const BLACK = '111111';
 const WHITE = 'FFFFFF';
 

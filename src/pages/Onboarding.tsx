@@ -35,7 +35,7 @@ const Onboarding = () => {
       <div className="mx-auto w-full max-w-xl">
         <div className="flex items-center gap-2">
           <PetalMark className="h-9 w-9" />
-          <span className="font-display text-base font-bold">PaperPetal AI</span>
+          <span className="font-display text-base font-bold">KIVORA</span>
         </div>
         <h1 className="mt-6 font-display text-2xl font-extrabold">คุณอยากสร้างอะไร?</h1>
         <p className="mt-1 text-sm font-ui text-muted-foreground">เลือก 1 ข้อ เพื่อให้เราจัดหน้าเวิร์กสเปซให้เหมาะกับคุณ</p>

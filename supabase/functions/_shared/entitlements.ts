@@ -28,9 +28,11 @@ export async function requireUser(req: Request) {
   return { user: data.user, error: null };
 }
 
+const OPERATOR_ROLES = ['admin', 'superadmin', 'subperadmin'];
+
 export async function isAdmin(userId: string) {
-  const { data } = await admin().from('user_roles').select('role').eq('user_id', userId).eq('role', 'admin').maybeSingle();
-  return !!data;
+  const { data } = await admin().from('user_roles').select('role').eq('user_id', userId).in('role', OPERATOR_ROLES);
+  return (data ?? []).length > 0;
 }
 
 export interface AccountState {
@@ -158,6 +160,22 @@ export async function commitUsage(opts: {
   costEstimate?: number | null;
   metadata?: Record<string, unknown>;
 }) {
+  if (await isAdmin(opts.userId)) {
+    await admin().from('usage_ledger').insert({
+      user_id: opts.userId,
+      operation: opts.operation,
+      metric: opts.metric,
+      project_id: opts.projectId ?? null,
+      quantity: opts.quantity,
+      model: opts.model ?? null,
+      status: 'success',
+      plan_code: opts.planCode,
+      cost_estimate: opts.costEstimate ?? null,
+      metadata: { ...(opts.metadata ?? {}), operator_unmetered: true },
+    });
+    return;
+  }
+
   const db = admin();
   const period = new Date(opts.periodStart).toISOString().slice(0, 10);
 

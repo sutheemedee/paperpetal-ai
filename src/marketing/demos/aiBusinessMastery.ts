@@ -11,7 +11,7 @@ const content: DemoContent = {
       subtitle: 'คู่มือประยุกต์ AI สำหรับผู้ประกอบการยุคใหม่',
       image: cover,
       blocks: [
-        { type: 'p', text: 'สร้างด้วย PaperPetal AI · ตัวอย่างสาธิต (AI DEMO)' },
+        { type: 'p', text: 'สร้างด้วย KIVORA · ตัวอย่างสาธิต (AI DEMO)' },
       ],
     },
     {

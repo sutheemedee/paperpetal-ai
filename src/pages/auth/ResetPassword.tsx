@@ -37,7 +37,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <AuthLayout headline="NEW PASSWORD." sub="ตั้งรหัสผ่านใหม่เพื่อกลับเข้าใช้งานบัญชีของคุณ" seo={{ title: "ตั้งรหัสผ่านใหม่ | PaperPetal AI", description: "ตั้งรหัสผ่านใหม่สำหรับบัญชี PaperPetal AI", path: "/auth/reset-password", noindex: true }}>
+    <AuthLayout headline="NEW PASSWORD." sub="ตั้งรหัสผ่านใหม่เพื่อกลับเข้าใช้งานบัญชีของคุณ" seo={{ title: "ตั้งรหัสผ่านใหม่ | KIVORA", description: "ตั้งรหัสผ่านใหม่สำหรับบัญชี KIVORA", path: "/auth/reset-password", noindex: true }}>
       <h1 className="font-display text-xl font-bold">ตั้งรหัสผ่านใหม่</h1>
       {!ready && <p className="mt-2 text-xs font-ui text-muted-foreground">เปิดหน้านี้จากลิงก์ในอีเมลเพื่อตั้งรหัสผ่านใหม่</p>}
       <form onSubmit={submit} className="mt-4 flex flex-col gap-3">

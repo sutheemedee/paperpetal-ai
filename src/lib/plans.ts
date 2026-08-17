@@ -82,10 +82,10 @@ export const FALLBACK_PLANS: Plan[] = [
     badge: 'PRO',
     sort_order: 4,
     entitlements: {
-      projects: null, aiPages: 3000, aiImages: 1200, slides: 1200, sourcesPerProject: 100,
+      projects: null, aiPages: null, aiImages: null, slides: null, sourcesPerProject: null,
       exports: null, exportsPerDay: null, pdf: true, docx: true, epub: true, pptx: true,
       watermark: false, ultraRealistic: true, advancedSources: true, youtube: true,
-      manga: true, characterDNA: true, knowledgeMap: true, priorityQueue: true, fairUse: true,
+      manga: true, characterDNA: true, knowledgeMap: true, priorityQueue: true, fairUse: false,
     },
   },
 ];
@@ -103,7 +103,7 @@ export const PLAN_HIGHLIGHTS: Record<PlanCode, string[]> = {
   free: ['3 โปรเจกต์', '30 AI Pages', '10 AI Images', '3 แหล่งข้อมูล/โปรเจกต์', 'ส่งออก 1 ครั้ง/วัน', 'มีลายน้ำ'],
   starter: ['10 โปรเจกต์', '300 AI Pages / เดือน', '100 AI Images', 'ส่งออก PDF · DOCX · EPUB', '20 ครั้ง/เดือน', 'ไม่มีลายน้ำ'],
   creator: ['30 โปรเจกต์', '1,000 AI Pages / เดือน', '400 AI Images · 400 สไลด์', 'PPTX แก้ไขได้ · EPUB 3', 'YouTube Knowledge · Visual DNA', 'Ultra Realistic · Priority'],
-  unlimited: ['โปรเจกต์ไม่จำกัด', '3,000 AI Pages (Fair Use)', '1,200 AI Images · 1,200 สไลด์', '100 แหล่งข้อมูล/โปรเจกต์', 'Batch Export · Priority Queue', 'Priority Support'],
+  unlimited: ['โปรเจกต์ไม่จำกัด', 'AI Pages ไม่จำกัด', 'AI Images และสไลด์ไม่จำกัด', 'แหล่งข้อมูลไม่จำกัด', 'Batch Export · Priority Queue', 'Priority Support'],
 };
 
 export const PLAN_CTA: Record<PlanCode, string> = {

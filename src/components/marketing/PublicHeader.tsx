@@ -24,7 +24,7 @@ const PublicHeader = () => {
       <div className="mx-auto flex w-full max-w-6xl items-center gap-3 px-4 py-2.5">
         <Link to="/" className="flex shrink-0 items-center gap-2" onClick={() => setOpen(false)}>
           <PetalMark className="h-8 w-8" />
-          <span className="font-display text-sm font-bold md:text-base">PaperPetal AI</span>
+          <span className="font-display text-sm font-bold md:text-base">KIVORA</span>
         </Link>
 
         <nav className="mx-auto hidden items-center gap-1 lg:flex">

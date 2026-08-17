@@ -110,7 +110,7 @@ export const SidebarNav = () => {
                 }`}
               >
                 {active && (
-                  <span className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-paperpetal" />
+                  <span className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-ai" />
                 )}
                 <item.icon className={`h-[18px] w-[18px] ${active ? 'text-primary' : ''}`} />
                 <span className="truncate">{item.label}</span>
@@ -155,7 +155,7 @@ export const MobileNav = () => {
               aria-current={active ? 'page' : undefined}
               className="flex min-h-[56px] flex-col items-center justify-center gap-1 text-[11px] font-ui font-semibold text-muted-foreground"
             >
-              <span className="press flex h-9 w-11 items-center justify-center rounded-2xl bg-gradient-paperpetal text-primary-foreground shadow-[var(--shadow-glow)]">
+              <span className="press flex h-9 w-11 items-center justify-center rounded-2xl bg-gradient-ai text-primary-foreground shadow-[var(--shadow-glow)]">
                 <n.icon className="h-5 w-5" />
               </span>
               <span className={active ? 'text-foreground' : ''}>{n.label}</span>

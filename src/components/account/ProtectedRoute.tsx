@@ -8,7 +8,7 @@ const APP_TITLES: Record<string, string> = {
   '/dashboard': 'หน้าหลัก',
   '/projects': 'โปรเจกต์ของฉัน',
   '/knowledge': 'แหล่งข้อมูล',
-  '/chat': 'Ask PaperPetal',
+  '/chat': 'Ask KIVORA',
   '/book': 'Book Studio',
   '/present': 'Presentation Studio',
   '/billing': 'บัญชีและการชำระเงิน',
@@ -38,8 +38,8 @@ export const ProtectedRoute = ({ children, adminOnly }: { children: React.ReactN
     <>
       <Seo
         path={location.pathname}
-        title={`${APP_TITLES[location.pathname] || 'Studio'} | PaperPetal AI`}
-        description="พื้นที่ทำงานส่วนตัวของ PaperPetal AI"
+        title={`${APP_TITLES[location.pathname] || 'Studio'} | KIVORA`}
+        description="พื้นที่ทำงานส่วนตัวของ KIVORA"
         noindex
       />
       {children}

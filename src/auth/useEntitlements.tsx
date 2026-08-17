@@ -82,7 +82,7 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
         return true;
       }
       if (!user) {
-        openUpgrade({ kind: 'auth', title: 'เข้าสู่ระบบเพื่อใช้ AI', detail: 'สร้างบัญชีฟรีเพื่อเริ่มใช้งาน PaperPetal AI' });
+        openUpgrade({ kind: 'auth', title: 'เข้าสู่ระบบเพื่อใช้ AI', detail: 'สร้างบัญชีฟรีเพื่อเริ่มใช้งาน KIVORA' });
         return false;
       }
       try {
@@ -104,7 +104,7 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
     async (metric: UsageMetric, quantity = 1) => {
       if (unrestricted) return true;
       if (!user) {
-        openUpgrade({ kind: 'auth', title: 'เข้าสู่ระบบเพื่อใช้ AI', detail: 'สร้างบัญชีฟรีเพื่อเริ่มใช้งาน PaperPetal AI' });
+        openUpgrade({ kind: 'auth', title: 'เข้าสู่ระบบเพื่อใช้ AI', detail: 'สร้างบัญชีฟรีเพื่อเริ่มใช้งาน KIVORA' });
         return false;
       }
       try {

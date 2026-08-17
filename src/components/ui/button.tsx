@@ -10,7 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-paperpetal text-primary-foreground shadow-[var(--shadow-soft)] hover:brightness-110",
+          "bg-gradient-ai text-primary-foreground shadow-[var(--shadow-soft)] hover:brightness-110",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
           "border border-border bg-elevated text-foreground hover:bg-surface-hover hover:border-strong",
@@ -18,9 +18,9 @@ const buttonVariants = cva(
           "border border-border bg-elevated text-secondary-foreground hover:bg-surface-hover",
         ghost: "text-foreground/90 hover:bg-surface-hover hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        ai: "bg-gradient-paperpetal text-primary-foreground shadow-[var(--shadow-glow)] hover:brightness-110",
+        ai: "bg-gradient-ai text-primary-foreground shadow-[var(--shadow-glow)] hover:brightness-110",
         upgrade:
-          "bg-gradient-paperpetal text-primary-foreground shadow-[var(--shadow-glow)] hover:brightness-110",
+          "bg-gradient-ai text-primary-foreground shadow-[var(--shadow-glow)] hover:brightness-110",
         subtle: "bg-gradient-subtle text-foreground border border-border hover:bg-surface-hover",
       },
       size: {

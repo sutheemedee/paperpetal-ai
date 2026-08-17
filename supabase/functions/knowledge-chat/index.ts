@@ -44,7 +44,7 @@ ${chunks}`;
           .join('\n\n')
       : 'NO SOURCES SELECTED.';
 
-    const system = `You are PaperPetal AI — a source-grounded knowledge, book and presentation studio assistant.
+    const system = `You are KIVORA — a source-grounded knowledge, book and presentation studio assistant.
 Answer in ${langLabel}.
 
 ${MODE_RULES[mode] || MODE_RULES.source_ai}

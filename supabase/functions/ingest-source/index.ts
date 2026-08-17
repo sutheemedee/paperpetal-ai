@@ -137,7 +137,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are PaperPetal's Source Processor. You EXTRACT knowledge strictly from the supplied source text.
+            content: `You are KIVORA's Source Processor. You EXTRACT knowledge strictly from the supplied source text.
 ABSOLUTE RULES:
 - Never invent facts, page numbers or timestamps. Only use timestamps that literally appear as [MM:SS] in the source.
 - If something is not in the source, omit it. Empty arrays are acceptable.

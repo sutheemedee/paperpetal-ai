@@ -92,7 +92,7 @@ const Chat = () => {
   };
 
   return (
-    <AppShell title="Ask PaperPetal">
+    <AppShell title="Ask KIVORA">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-3 py-4 md:px-4">
         <div className="flex flex-wrap items-center gap-2">
           <select
@@ -173,7 +173,7 @@ const Chat = () => {
               }
             }}
             rows={1}
-            placeholder="ถาม PaperPetal จากแหล่งข้อมูลของคุณ..."
+            placeholder="ถาม KIVORA จากแหล่งข้อมูลของคุณ..."
             className="max-h-32 min-h-11 flex-1 resize-none bg-transparent px-2 py-2.5 text-base font-ui focus:outline-none md:text-sm"
           />
           <button

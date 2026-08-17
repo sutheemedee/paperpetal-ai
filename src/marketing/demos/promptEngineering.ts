@@ -10,7 +10,7 @@ const content: DemoContent = {
       title: 'PROMPT ENGINEERING',
       subtitle: 'FROM ZERO TO PRO · คู่มือเทคนิคการสั่งงาน AI ฉบับลงมือทำ',
       image: cover,
-      blocks: [{ type: 'p', text: 'สร้างด้วย PaperPetal AI · ตัวอย่างสาธิต (AI DEMO)' }],
+      blocks: [{ type: 'p', text: 'สร้างด้วย KIVORA · ตัวอย่างสาธิต (AI DEMO)' }],
     },
     {
       label: 'บทนำ',

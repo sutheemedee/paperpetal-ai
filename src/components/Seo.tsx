@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 export const SITE_URL = 'https://paperpetal-ai.lovable.app';
-export const SITE_NAME = 'PaperPetal AI';
+export const SITE_NAME = 'KIVORA';
 
 interface SeoProps {
   title: string;

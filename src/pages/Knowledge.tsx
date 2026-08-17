@@ -202,7 +202,7 @@ const Knowledge = () => {
               onClick={() => openAdd(t.type)}
               className="press group flex min-h-[92px] flex-col justify-center gap-1.5 rounded-2xl border border-border bg-card p-3 text-left transition-colors hover:border-primary/60 hover:bg-surface-hover"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-paperpetal text-primary-foreground">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-ai text-primary-foreground">
                 <t.icon className="h-4 w-4" />
               </span>
               <span className="font-ui text-sm font-bold">{t.label}</span>
@@ -234,7 +234,7 @@ const Knowledge = () => {
           </select>
           <button
             onClick={() => openAdd('youtube')}
-            className="press flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-paperpetal px-4 text-sm font-ui font-bold text-primary-foreground shadow-[var(--shadow-glow)]"
+            className="press flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-ai px-4 text-sm font-ui font-bold text-primary-foreground shadow-[var(--shadow-glow)]"
           >
             <Plus className="h-4 w-4" /> เพิ่มแหล่งข้อมูล
           </button>

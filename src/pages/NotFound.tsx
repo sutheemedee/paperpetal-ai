@@ -13,7 +13,7 @@ const NotFound = () => {
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <Seo
         path={location.pathname}
-        title="ไม่พบหน้านี้ | PaperPetal AI"
+        title="ไม่พบหน้านี้ | KIVORA"
         description="ไม่พบหน้าที่คุณค้นหา"
         noindex
       />

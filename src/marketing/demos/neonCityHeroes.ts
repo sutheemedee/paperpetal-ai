@@ -10,7 +10,7 @@ const content: DemoContent = {
       title: 'NEON CITY AI HEROES',
       subtitle: 'เล่ม 1: เสียงจากชั้นใต้ดิน',
       image: cover,
-      blocks: [{ type: 'p', text: 'เรื่องแต่งที่สร้างด้วย PaperPetal AI · FICTIONAL AI DEMO' }],
+      blocks: [{ type: 'p', text: 'เรื่องแต่งที่สร้างด้วย KIVORA · FICTIONAL AI DEMO' }],
     },
     {
       label: 'เรื่องย่อ',

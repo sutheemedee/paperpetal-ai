@@ -25,7 +25,7 @@ const CoverDesigner = ({ bookData, coverImageUrl, backCoverImageUrl, onRegenerat
           onRegenerate={onRegenerateCover}
         />
         <div className="absolute inset-0 flex flex-col justify-end p-6 bg-gradient-to-t from-black/70 via-black/20 to-transparent">
-          <p className="text-[10px] font-ui tracking-widest uppercase text-primary" style={{ color: '#FFD600' }}>
+          <p className="text-[10px] font-ui tracking-widest uppercase text-primary" style={{ color: '#00CFFF' }}>
             {bookData.author}
           </p>
           <h2 className="text-xl font-heading font-bold leading-tight mt-1" style={{ color: '#fff' }}>
