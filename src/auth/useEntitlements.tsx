@@ -74,6 +74,11 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
 
   const consume = useCallback(
     async (input: ConsumeInput) => {
+      if (unrestricted) {
+        // Log usage in the background but never block operator accounts.
+        call({ action: 'consume', ...input, quantity: input.quantity ?? 1 }).catch(() => {});
+        return true;
+      }
       if (!user) {
         openUpgrade({ kind: 'auth', title: 'เข้าสู่ระบบเพื่อใช้ AI', detail: 'สร้างบัญชีฟรีเพื่อเริ่มใช้งาน PaperPetal AI' });
         return false;
