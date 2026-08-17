@@ -3,7 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
+import BookStudioV2 from "./pages/BookStudioV2.tsx";
 import Home from "./pages/Home.tsx";
 import Knowledge from "./pages/Knowledge.tsx";
 import Chat from "./pages/Chat.tsx";
@@ -80,7 +80,7 @@ const App = () => (
                 <Route path="/knowledge" element={guarded(<Knowledge />)} />
                 <Route path="/chat" element={guarded(<Chat />)} />
                 <Route path="/present" element={guarded(<Present />)} />
-                <Route path="/book" element={guarded(<Index />)} />
+                <Route path="/book" element={guarded(<BookStudioV2 />)} />
                 <Route path="/admin" element={guarded(<Admin />, true)} />
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

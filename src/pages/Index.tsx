@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { BookOpenCheck, Sparkles, Wand2 } from 'lucide-react';
 import { BOOK_SIZES, BookSize } from '@/utils/bookSizes';
 import { generateBook, StyleProfile } from '@/utils/generateBook';
@@ -23,6 +23,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/auth/AuthProvider';
 import { useEntitlements } from '@/auth/useEntitlements';
 import UsageBar from '@/components/account/UsageBar';
+import { readCreationDraft } from '@/templates/store';
+import { getTemplate } from '@/templates/catalog';
+import {
+  BOOK_THEMES,
+  COVER_STYLES as DESIGN_STYLES,
+  FONT_LIBRARY,
+  designDefaultsFor,
+  fontById,
+  styleById,
+  themeById,
+} from '@/templates/visualPreview';
 
 const PAGE_COUNTS = [10, 20, 30, 50, 100];
 const COLOR_THEMES = [
@@ -53,6 +64,9 @@ const Index = () => {
   const [selectedSize, setSelectedSize] = useState<BookSize>(BOOK_SIZES[1]);
   const [colorTheme, setColorTheme] = useState('violet prism');
   const [coverStyle, setCoverStyle] = useState('Modern');
+  const [designThemeId, setDesignThemeId] = useState('ai-technology');
+  const [coverStyleId, setCoverStyleId] = useState('modern');
+  const [fontId, setFontId] = useState('noto-sans-thai');
   const [language, setLanguage] = useState('thai');
   const [styleProfile, setStyleProfile] = useState<StyleProfile | null>(null);
   const [bookData, setBookData] = useState<any>(null);
@@ -68,6 +82,39 @@ const Index = () => {
 
   const pages = useMemo(() => (bookData ? flattenBook(bookData) : []), [bookData]);
   const entry = pages[Math.min(current, Math.max(pages.length - 1, 0))];
+  const selectedTheme = themeById(designThemeId);
+  const selectedCoverStyle = styleById(coverStyleId);
+  const selectedFont = fontById(fontId);
+
+  useEffect(() => {
+    const saved = readCreationDraft();
+    if (!saved) return;
+    const template = getTemplate(saved.templateId);
+    const defaults = designDefaultsFor(template);
+    setTitle(saved.topic || template?.name || '');
+    setPageCount(saved.pages || template?.defaultPageCount || 20);
+    setLanguage(saved.language || 'thai');
+    setColorTheme(template?.visualDNA.palette || saved.visualStyle || 'KIVORA prism');
+    setCoverStyle(template?.visualDNA.coverStyle || 'Modern');
+    setDesignThemeId(defaults.themeId);
+    setCoverStyleId(defaults.styleId);
+    setFontId(defaults.fontId);
+    setSourceMode(saved.sourceIds?.length ? 'source_ai' : 'creative');
+    setStyleProfile({
+      tone: saved.tone || template?.writingDNA.tone || 'ชัดเจน เป็นมิตร มืออาชีพ',
+      complexity: template?.writingDNA.sentenceComplexity || 'medium',
+      language: saved.language || 'thai',
+      sentenceStyle: template?.writingDNA.paragraphLength || 'medium',
+      characteristics: [
+        `ธีมสี: ${themeById(defaults.themeId).name}`,
+        `รูปแบบปก: ${styleById(defaults.styleId).name}`,
+        `ฟอนต์: ${fontById(defaults.fontId).name}`,
+      ],
+      vocabularyLevel: template?.writingDNA.technicalLevel || 'intermediate',
+      writingPersona: 'KIVORA AI Design Director',
+      styleInstructions: `ใช้โครงสร้างจากเทมเพลต ${template?.name ?? saved.templateId}; จัดน้ำเสียงให้เหมาะกับ ${saved.audience}; ใช้ font pairing ${fontById(defaults.fontId).name}; visual direction ${themeById(defaults.themeId).name} + ${styleById(defaults.styleId).name}`,
+    });
+  }, []);
 
   const handleGenerate = async () => {
     if (!title) {
@@ -86,7 +133,26 @@ const Index = () => {
     try {
       setProgress(25);
       setProgressText('กำลังสร้างโครงสร้างและเนื้อหาหนังสือ...');
-      const book = await generateBook(title, pageCount, language, styleProfile, chatPayloadSources(), sourceMode);
+      const designProfile: StyleProfile = {
+        tone: styleProfile?.tone || 'ชัดเจน เป็นมิตร มืออาชีพ',
+        complexity: styleProfile?.complexity || 'medium',
+        language,
+        sentenceStyle: styleProfile?.sentenceStyle || 'balanced',
+        characteristics: [
+          ...(styleProfile?.characteristics ?? []),
+          `ธีมสีหนังสือ: ${selectedTheme.name} (${selectedTheme.description})`,
+          `รูปแบบปก: ${selectedCoverStyle.name} (${selectedCoverStyle.description})`,
+          `ฟอนต์หนังสือ: ${selectedFont.name} (${selectedFont.description})`,
+        ],
+        vocabularyLevel: styleProfile?.vocabularyLevel || 'intermediate',
+        writingPersona: styleProfile?.writingPersona || 'KIVORA AI Design Director',
+        styleInstructions: [
+          styleProfile?.styleInstructions,
+          `ออกแบบเป็นหนังสือจริงด้วย mood ${selectedTheme.name}, cover composition ${selectedCoverStyle.composition}, font pairing ${selectedFont.name}.`,
+          'ภาษาไทยต้องอ่านง่าย ไม่ใช้ประโยคยาวเกินไป และจัดหัวข้อให้เหมาะกับการส่งออกเป็น PDF/EPUB.',
+        ].filter(Boolean).join('\n'),
+      };
+      const book = await generateBook(title, pageCount, language, designProfile, chatPayloadSources(), sourceMode);
       if (!book) {
         toast.error('ไม่สามารถสร้างหนังสือได้ กรุณาลองใหม่');
         setGenerating(false);
@@ -209,6 +275,27 @@ const Index = () => {
       toast.error(`ส่งออกไม่สำเร็จ: ${err?.message || 'ไม่ทราบสาเหตุ'}`);
     }
     setExporting('');
+  };
+
+  const applyAiDesign = () => {
+    const lower = title.toLowerCase();
+    const pick =
+      lower.includes('เด็ก') || lower.includes('kids')
+        ? { themeId: 'kids', styleId: 'kids', fontId: 'mitr', pages: 32 }
+        : lower.includes('manga') || lower.includes('มังงะ') || lower.includes('comic')
+          ? { themeId: 'dark-premium', styleId: 'manga', fontId: 'kanit', pages: 48 }
+          : lower.includes('ธุรกิจ') || lower.includes('business') || lower.includes('marketing')
+            ? { themeId: 'business', styleId: 'editorial', fontId: 'ibm-plex-sans-thai', pages: 80 }
+            : lower.includes('วิจัย') || lower.includes('research') || lower.includes('academic')
+              ? { themeId: 'academic', styleId: 'academic', fontId: 'noto-serif-thai', pages: 90 }
+              : { themeId: 'ai-technology', styleId: 'modern', fontId: 'kanit', pages: pageCount || 60 };
+    setDesignThemeId(pick.themeId);
+    setCoverStyleId(pick.styleId);
+    setFontId(pick.fontId);
+    if (!pageCount || pageCount === 20) setPageCount(pick.pages);
+    setColorTheme(themeById(pick.themeId).name);
+    setCoverStyle(styleById(pick.styleId).name);
+    toast.success('AI Design Director เลือกชุดออกแบบเริ่มต้นให้แล้ว');
   };
 
   const chip = (active: boolean) =>
