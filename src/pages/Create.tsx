@@ -9,6 +9,7 @@ import { CREATE_CATEGORIES, categoryTemplates } from '@/templates/catalog';
 import { buildProjectPlan, outputIdeasFromSources, recommendTemplates, recommendedForYou } from '@/templates/recommend';
 import { CreationDraft, saveCreationDraft, trackTemplate, useTemplates } from '@/templates/store';
 import { TemplateDefinition, planRank } from '@/templates/types';
+import { BOOK_THEMES, COVER_STYLES, FONT_LIBRARY, designDefaultsFor } from '@/templates/visualPreview';
 import { useAuth } from '@/auth/AuthProvider';
 import { useEntitlements } from '@/auth/useEntitlements';
 import { useKnowledge } from '@/knowledge/store';
@@ -16,21 +17,27 @@ import { useKnowledge } from '@/knowledge/store';
 const label = 'text-[10px] font-ui font-bold uppercase tracking-wide text-muted-foreground';
 const field = 'min-h-11 w-full rounded-xl border border-border bg-card px-3 text-sm font-ui outline-none focus:border-primary/60';
 
-const makeDraft = (template: TemplateDefinition, topic = '', sourceIds: string[] = []): CreationDraft => ({
-  templateId: template.id,
-  topic,
-  purpose: '',
-  audience: template.targetAudience,
-  language: 'thai',
-  sourceIds,
-  pages: template.defaultPageCount,
-  chapters: template.defaultChapterCount,
-  tone: template.writingDNA.tone,
-  visualDensity: template.visualDNA.imageDensity,
-  citationLevel: template.writingDNA.citationDensity,
-  visualStyle: template.visualDNA.palette,
-  imageStyle: template.visualDNA.imageStyle,
-});
+const makeDraft = (template: TemplateDefinition, topic = '', sourceIds: string[] = []): CreationDraft => {
+  const defaults = designDefaultsFor(template);
+  return {
+    templateId: template.id,
+    topic,
+    purpose: '',
+    audience: template.targetAudience,
+    language: 'thai',
+    sourceIds,
+    pages: template.defaultPageCount,
+    chapters: template.defaultChapterCount,
+    tone: template.writingDNA.tone,
+    visualDensity: template.visualDNA.imageDensity,
+    citationLevel: template.writingDNA.citationDensity,
+    visualStyle: template.visualDNA.palette,
+    imageStyle: template.visualDNA.imageStyle,
+    designThemeId: defaults.themeId,
+    coverStyleId: defaults.styleId,
+    fontId: defaults.fontId,
+  };
+};
 
 const Create = () => {
   const navigate = useNavigate();
@@ -80,9 +87,9 @@ const Create = () => {
   const approve = () => {
     if (!selected || !draft || !draft.topic.trim()) return;
     const plan = buildProjectPlan(selected, draft);
-    saveCreationDraft({ ...draft, plan });
+    saveCreationDraft({ ...draft, plan, autoStart: true });
     trackTemplate('template_completion', selected.id);
-    navigate(selected.contentType === 'presentation' ? '/present' : '/book');
+    navigate(selected.contentType === 'presentation' ? '/present?start=1' : '/book?start=1');
   };
 
   const plan = selected && draft ? buildProjectPlan(selected, draft) : null;
@@ -243,6 +250,77 @@ const Create = () => {
                     <span className={label}>เป้าหมาย</span>
                     <input className={field} value={draft.purpose} onChange={e => set({ purpose: e.target.value })} placeholder="อยากให้ผู้อ่านได้อะไร" />
                   </label>
+
+                  <section className="rounded-xl border border-border bg-surface p-3">
+                    <div className="mb-3 flex items-center justify-between gap-2">
+                      <div>
+                        <p className={label}>Book Design</p>
+                        <h3 className="font-heading text-sm font-bold">หน้าตาหนังสือ</h3>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const defaults = designDefaultsFor(selected);
+                          set({ designThemeId: defaults.themeId, coverStyleId: defaults.styleId, fontId: defaults.fontId });
+                        }}
+                        className="rounded-full border border-primary/40 px-3 py-1.5 text-[11px] font-ui font-bold text-primary"
+                      >
+                        AI เลือกให้
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <p className="mb-2 text-[11px] font-ui font-bold text-muted-foreground">ธีมสีหนังสือ</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {BOOK_THEMES.slice(0, 6).map(theme => (
+                            <button
+                              key={theme.id}
+                              type="button"
+                              onClick={() => set({ designThemeId: theme.id, visualStyle: theme.name })}
+                              className={`rounded-xl border p-2 text-left ${draft.designThemeId === theme.id ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}
+                            >
+                              <span className={`mb-2 block h-7 rounded-lg bg-gradient-to-br ${theme.bg}`} />
+                              <span className="block text-[11px] font-ui font-bold">{theme.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="mb-2 text-[11px] font-ui font-bold text-muted-foreground">รูปแบบปก</p>
+                        <div className="flex gap-2 overflow-x-auto pb-1">
+                          {COVER_STYLES.map(style => (
+                            <button
+                              key={style.id}
+                              type="button"
+                              onClick={() => set({ coverStyleId: style.id, imageStyle: style.name })}
+                              className={`min-h-10 shrink-0 rounded-full border px-3 text-[11px] font-ui font-bold ${draft.coverStyleId === style.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background'}`}
+                            >
+                              {style.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="mb-2 text-[11px] font-ui font-bold text-muted-foreground">ฟอนต์หนังสือ</p>
+                        <div className="grid gap-2">
+                          {FONT_LIBRARY.slice(0, 5).map(font => (
+                            <button
+                              key={font.id}
+                              type="button"
+                              onClick={() => set({ fontId: font.id })}
+                              className={`rounded-xl border p-2 text-left ${draft.fontId === font.id ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}
+                            >
+                              <span className="block text-sm font-bold" style={{ fontFamily: font.stack }}>{font.sample}</span>
+                              <span className="text-[10px] font-ui text-muted-foreground">{font.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </section>
 
                   <button
                     type="button"

@@ -86,6 +86,10 @@ export interface CreationDraft {
   citationLevel: 'none' | 'light' | 'medium' | 'heavy';
   visualStyle: string;
   imageStyle: string;
+  designThemeId?: string;
+  coverStyleId?: string;
+  fontId?: string;
+  autoStart?: boolean;
   plan?: {
     title: string;
     objective: string;

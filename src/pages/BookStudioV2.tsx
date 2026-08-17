@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { BookOpenCheck, FileDown, Save, Sparkles, Wand2 } from 'lucide-react';
 import StudioLayout from '@/components/studio/StudioLayout';
 import ZoomPanCanvas from '@/components/studio/ZoomPanCanvas';
@@ -36,6 +37,7 @@ const LANGUAGES = [
 const buttonBase = 'min-h-11 rounded-xl border px-3 text-sm font-ui transition-colors';
 
 const BookStudioV2 = () => {
+  const [params] = useSearchParams();
   const { isMobile } = useDevice();
   const illustrations = useIllustrations();
   const { activeSources, chatPayloadSources } = useKnowledge();
@@ -63,6 +65,9 @@ const BookStudioV2 = () => {
   const [progress, setProgress] = useState(0);
   const [progressText, setProgressText] = useState('');
   const [viewer, setViewer] = useState<{ url: string; caption: string } | null>(null);
+  const [cameFromCreate, setCameFromCreate] = useState(false);
+  const [autoStartReady, setAutoStartReady] = useState(false);
+  const [autoStarted, setAutoStarted] = useState(false);
 
   const selectedTheme = themeById(designThemeId);
   const selectedCoverStyle = styleById(coverStyleId);
@@ -78,10 +83,12 @@ const BookStudioV2 = () => {
     setTitle(draft.topic || template?.name || '');
     setPageCount(draft.pages || template?.defaultPageCount || 60);
     setLanguage(draft.language || 'thai');
-    setDesignThemeId(defaults.themeId);
-    setCoverStyleId(defaults.styleId);
-    setFontId(defaults.fontId);
+    setDesignThemeId(draft.designThemeId || defaults.themeId);
+    setCoverStyleId(draft.coverStyleId || defaults.styleId);
+    setFontId(draft.fontId || defaults.fontId);
     setSourceMode(draft.sourceIds?.length ? 'source_ai' : 'creative');
+    setCameFromCreate(Boolean(draft.autoStart || params.get('start') === '1'));
+    setAutoStartReady(Boolean(draft.autoStart || params.get('start') === '1'));
     setStyleProfile({
       tone: draft.tone || template?.writingDNA.tone || 'ชัดเจน เป็นมิตร มืออาชีพ',
       complexity: template?.writingDNA.sentenceComplexity || 'medium',
@@ -92,7 +99,7 @@ const BookStudioV2 = () => {
       writingPersona: 'KIVORA AI Design Director',
       styleInstructions: `วางงานตามเทมเพลต ${template?.name ?? draft.templateId} และปรับภาษาให้เหมาะกับ ${draft.audience}`,
     });
-  }, []);
+  }, [params]);
 
   const applyAiDesign = () => {
     const lower = title.toLowerCase();
@@ -169,6 +176,12 @@ const BookStudioV2 = () => {
     }
   };
 
+  useEffect(() => {
+    if (!autoStartReady || autoStarted || generating || bookData || !title.trim()) return;
+    setAutoStarted(true);
+    void handleGenerate();
+  }, [autoStartReady, autoStarted, generating, bookData, title]);
+
   const saveProject = async () => {
     if (!bookData || !user) return;
     setSaving(true);
@@ -232,6 +245,7 @@ const BookStudioV2 = () => {
   };
 
   const optionClass = (active: boolean) => `${buttonBase} ${active ? 'border-primary bg-primary/10 font-bold text-foreground' : 'border-border bg-background hover:bg-card'}`;
+  const setupLocked = cameFromCreate || Boolean(bookData);
 
   const director = (
     <div className="flex flex-col gap-5 pb-4">
@@ -253,6 +267,16 @@ const BookStudioV2 = () => {
         )}
       </section>
 
+      {setupLocked && (
+        <section className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-xs font-ui leading-relaxed">
+          <div className="font-bold text-foreground">ตั้งค่าจากหน้า Create แล้ว</div>
+          <div className="mt-1 text-muted-foreground">
+            ระบบใช้เทมเพลต ฟอนต์ ธีมปก จำนวนหน้า ภาษา และแหล่งข้อมูลที่เลือกไว้ก่อนหน้า แล้วเริ่มสร้างงานให้อัตโนมัติ
+          </div>
+        </section>
+      )}
+
+      <div className={setupLocked ? 'hidden' : 'contents'}>
       <section>
         <div className="mb-2 text-sm font-ui font-bold">จำนวนหน้า</div>
         <div className="flex flex-wrap gap-2">{PAGE_COUNTS.map(n => <button key={n} onClick={() => setPageCount(n)} className={optionClass(pageCount === n)}>{n}</button>)}</div>
@@ -312,6 +336,7 @@ const BookStudioV2 = () => {
       </section>
 
       <StyleTemplateUploader onStyleExtracted={setStyleProfile} />
+      </div>
 
       {generating && (
         <div className="animate-fade-in">
@@ -320,9 +345,9 @@ const BookStudioV2 = () => {
         </div>
       )}
 
-      <button onClick={handleGenerate} disabled={generating || !title.trim()} className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-full text-sm font-ui font-bold ${generating || !title.trim() ? 'cursor-not-allowed bg-accent text-muted-foreground' : 'bg-gradient-ai text-primary-foreground shadow-md'}`}>
+      {!bookData && <button onClick={handleGenerate} disabled={generating || !title.trim()} className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-full text-sm font-ui font-bold ${generating || !title.trim() ? 'cursor-not-allowed bg-accent text-muted-foreground' : 'bg-gradient-ai text-primary-foreground shadow-md'}`}>
         <Sparkles className="h-4 w-4" /> {generating ? 'กำลังสร้าง...' : 'สร้างหนังสือ'}
-      </button>
+      </button>}
 
       {bookData && (
         <>
