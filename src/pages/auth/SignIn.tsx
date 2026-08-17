@@ -28,7 +28,7 @@ const SignIn = () => {
   };
 
   return (
-    <AuthLayout headline="CREATE FROM KNOWLEDGE." sub="เปลี่ยนแหล่งข้อมูล ไอเดีย และงานวิจัยของคุณให้เป็นหนังสือ พรีเซนเทชัน และเรื่องเล่าภาพด้วย AI" seo={{ title: "เข้าสู่ระบบ | KIVORA", description: "เข้าสู่ระบบ KIVORA เพื่อสร้าง e-book หนังสือ และพรีเซนเทชันด้วย AI จากแหล่งข้อมูลของคุณ", path: "/auth/sign-in" }}>
+    <AuthLayout headline="CREATE FROM KNOWLEDGE" sub="เปลี่ยนความรู้และแหล่งข้อมูลของคุณให้กลายเป็นหนังสือ พรีเซนเทชัน คู่มือ และผลงานเผยแพร่ด้วย AI" seo={{ title: "เข้าสู่ระบบ | KIVORA", description: "เข้าสู่ระบบ KIVORA เพื่อสร้าง e-book หนังสือ และพรีเซนเทชันด้วย AI จากแหล่งข้อมูลของคุณ", path: "/auth/sign-in" }}>
       <h1 className="font-display text-xl font-bold">เข้าสู่ระบบ</h1>
       <p className="mt-1 text-xs font-ui text-muted-foreground">ยินดีต้อนรับกลับสู่ KIVORA</p>
 

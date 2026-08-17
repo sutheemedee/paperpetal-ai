@@ -1,46 +1,108 @@
 import { Link, Navigate } from 'react-router-dom';
 import {
-  ArrowRight, BookOpen, Check, FileDown, Layers, MessageCircle, Presentation, ShieldCheck, Sparkles, Wand2,
+  ArrowRight,
+  BookOpen,
+  BrainCircuit,
+  Check,
+  FileText,
+  GraduationCap,
+  Layers3,
+  MessageCircle,
+  Presentation,
+  Scale,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Stethoscope,
+  Wand2,
+  WandSparkles,
 } from 'lucide-react';
 import { FullLogo, PetalMark } from '@/components/brand/Logo';
 import { useAuth } from '@/auth/AuthProvider';
 import { FALLBACK_PLANS, PLAN_HIGHLIGHTS } from '@/lib/plans';
 import Seo, { SITE_URL, faqJsonLd } from '@/components/Seo';
 
-const FEATURES = [
-  { icon: Layers, title: 'Knowledge Engine', body: 'รวม YouTube, PDF, เว็บ และเอกสารของคุณให้เป็นคลังความรู้ที่ AI อ้างอิงได้' },
-  { icon: MessageCircle, title: 'Ask KIVORA', body: 'ถาม-ตอบจากแหล่งข้อมูลจริง พร้อมอ้างอิงกลับไปยังต้นทาง' },
-  { icon: BookOpen, title: 'Book & Manga Studio', body: 'เขียน จัดหน้า และวาดภาพประกอบด้วย AI ตั้งแต่ปกจนถึงหน้าสุดท้าย' },
-  { icon: Presentation, title: 'Presentation Studio', body: 'เปลี่ยนความรู้เป็นสไลด์พร้อมสคริปต์ผู้พูด ส่งออกเป็น PPTX แก้ไขได้' },
-  { icon: FileDown, title: 'Multi-format Export', body: 'PDF พร้อมพิมพ์ · DOCX · EPUB 3 · PPTX · ปก PNG ความละเอียดสูง' },
-  { icon: Wand2, title: 'Visual DNA', body: 'ล็อกสไตล์ภาพและตัวละครให้คงเส้นคงวาทั้งเล่ม' },
+const OUTPUTS = [
+  { icon: BookOpen, label: 'หนังสือ / eBook' },
+  { icon: Presentation, label: 'Presentation' },
+  { icon: GraduationCap, label: 'Course / Workbook' },
+  { icon: FileText, label: 'Research / Report' },
+  { icon: Stethoscope, label: 'Medical Content' },
+  { icon: Scale, label: 'Legal Draft' },
 ];
 
-/** AEO: คำถามที่ answer engine (Google AI, ChatGPT, Perplexity) ดึงไปตอบได้ตรง ๆ */
+const SHOWCASES = [
+  {
+    title: 'AI Mastery 2026',
+    type: 'Book · 120 Pages',
+    image: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    title: 'Marketing Strategy',
+    type: 'Presentation · 40 Slides',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    title: 'Medical Atlas',
+    type: 'Document · Visual Guide',
+    image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=900&q=80',
+  },
+  {
+    title: 'Research Intelligence',
+    type: 'Report · Citation Ready',
+    image: 'https://images.unsplash.com/photo-1456406644174-8ddd4cd52a06?auto=format&fit=crop&w=900&q=80',
+  },
+];
+
+const FEATURES = [
+  {
+    icon: BrainCircuit,
+    title: 'Knowledge Engine',
+    body: 'รวม YouTube, PDF, เว็บไซต์, Word และโน้ต ให้กลายเป็นคลังความรู้ที่ AI เข้าใจและอ้างอิงได้',
+  },
+  {
+    icon: Search,
+    title: 'Ask KIVORA',
+    body: 'ถาม-ตอบจากแหล่งข้อมูลจริง พร้อมย้อนกลับไปตรวจต้นทาง ลดการเดาและลดงานค้นมือ',
+  },
+  {
+    icon: BookOpen,
+    title: 'Book Studio',
+    body: 'วางโครง เขียนเนื้อหา สร้างปกและภาพประกอบ สำหรับหนังสือ คู่มือ ตำรา และ eBook',
+  },
+  {
+    icon: Presentation,
+    title: 'Presentation Studio',
+    body: 'เปลี่ยนความรู้เป็นสไลด์พร้อมสคริปต์ผู้พูด โครงเรื่อง และ visual direction',
+  },
+  {
+    icon: WandSparkles,
+    title: 'Visual Director',
+    body: 'กำหนดสไตล์ภาพ ไดอะแกรม อินโฟกราฟิก หรือภาพประกอบให้เข้ากับเนื้อหา',
+  },
+  {
+    icon: FileText,
+    title: 'Multi-format Publish',
+    body: 'ส่งออกเป็น PDF, DOCX, EPUB, PPTX และไฟล์ปก PNG พร้อมใช้งานจริง',
+  },
+];
+
 const FAQS = [
   {
     q: 'KIVORA คืออะไร?',
-    a: 'KIVORA คือสตูดิโอ AI ภาษาไทยที่เปลี่ยนแหล่งข้อมูลของคุณ เช่น คลิป YouTube ไฟล์ PDF เว็บไซต์ และเอกสาร Word ให้เป็นคลังความรู้ แล้วใช้ AI เขียนหนังสือ e-book คู่มือ บทความ มังงะ และพรีเซนเทชันพร้อมการอ้างอิงแหล่งที่มา',
+    a: 'KIVORA คือแพลตฟอร์ม AI ที่เปลี่ยนแหล่งข้อมูลและความรู้ของคุณให้กลายเป็นหนังสือ eBook คู่มือ งานวิจัย มังงะ และพรีเซนเทชัน พร้อม workflow สำหรับแก้ไขและส่งออกไฟล์',
   },
   {
-    q: 'สร้าง e-book ด้วย AI ใน KIVORA ทำอย่างไร?',
-    a: 'เพิ่มแหล่งข้อมูลในเมนูแหล่งข้อมูล เลือกล็อกแหล่งข้อมูลที่ต้องการ ตั้งชื่อเรื่องและจำนวนหน้าในเมนูสร้าง จากนั้น AI จะร่างสารบัญ เขียนเนื้อหาทุกบท และสร้างภาพประกอบกับปกให้อัตโนมัติ ก่อนส่งออกเป็นไฟล์',
+    q: 'ต้องเริ่มจากอะไร?',
+    a: 'คุณเริ่มได้จากไอเดียเปล่า ๆ หรือเพิ่มแหล่งข้อมูล เช่น YouTube, PDF, เว็บไซต์, Word และโน้ต จากนั้นเลือกชนิดผลงานที่ต้องการสร้าง',
   },
   {
     q: 'ส่งออกไฟล์ได้กี่รูปแบบ?',
-    a: 'ส่งออกได้เป็น PDF พร้อมพิมพ์, Word (.docx), EPUB 3 สำหรับ Kindle และ Apple Books, PowerPoint (.pptx) ที่แก้ไขได้ และไฟล์ปก PNG ความละเอียดสูง',
+    a: 'รองรับ PDF, Word (.docx), EPUB 3, PowerPoint (.pptx) และภาพปก PNG ตามสิทธิ์ของแพ็กเกจ',
   },
   {
-    q: 'ต้องมี API Key ของ AI เองไหม?',
-    a: 'ไม่ต้อง KIVORA มี AI ในตัวพร้อมใช้งานทันทีหลังสมัคร ทุกแผนรวมโควตาการเขียนและสร้างภาพด้วย AI ไว้แล้ว',
-  },
-  {
-    q: 'ราคาเท่าไหร่ และมีแผนฟรีไหม?',
-    a: 'มีแผน Free Trial ใช้ฟรีโดยไม่ต้องใช้บัตรเครดิต และแผนรายเดือน Starter 399 บาท, Creator 799 บาท, Unlimited 1,490 บาท ซึ่งเพิ่มโควตา AI และปลดล็อกการส่งออก EPUB กับ PPTX',
-  },
-  {
-    q: 'งานที่สร้างเป็นลิขสิทธิ์ของใคร?',
-    a: 'ผลงานทั้งหมดที่คุณสร้างเป็นของคุณ 100% นำไปตีพิมพ์ ขาย หรือเผยแพร่เชิงพาณิชย์ได้',
+    q: 'งานที่สร้างเป็นของใคร?',
+    a: 'ผลงานที่คุณสร้างเป็นของคุณ นำไปแก้ไข เผยแพร่ หรือต่อยอดเชิงพาณิชย์ได้ตามสิทธิ์การใช้งานและแหล่งข้อมูลที่คุณนำเข้ามา',
   },
 ];
 
@@ -48,13 +110,12 @@ const Home = () => {
   const { session, loading } = useAuth();
   if (session && !loading) return <Navigate to="/dashboard" replace />;
 
-
   return (
-    <div className="min-h-[100dvh] bg-background">
+    <div className="min-h-[100dvh] bg-[#070A18] text-white">
       <Seo
         path="/"
-        title="KIVORA — สร้าง E-Book, หนังสือ และพรีเซนเทชันด้วย AI"
-        description="เปลี่ยน YouTube, PDF และเว็บไซต์ให้เป็นคลังความรู้ แล้วให้ AI เขียนหนังสือ e-book มังงะ และสไลด์พร้อมอ้างอิง ส่งออก PDF, DOCX, EPUB, PPTX เริ่มใช้ฟรี"
+        title="KIVORA — เปลี่ยนความรู้ให้กลายเป็นผลงานด้วย AI"
+        description="KIVORA เปลี่ยน YouTube, PDF, เว็บไซต์, Word และไอเดียของคุณให้เป็นหนังสือ eBook คู่มือ งานวิจัย มังงะ และพรีเซนเทชัน ส่งออก PDF, DOCX, EPUB, PPTX ได้"
         jsonLd={[
           faqJsonLd(FAQS),
           {
@@ -65,8 +126,7 @@ const Home = () => {
             operatingSystem: 'Web',
             url: SITE_URL,
             inLanguage: 'th-TH',
-            description:
-              'AI Knowledge, Book & Presentation Studio สร้าง e-book หนังสือ และสไลด์จากแหล่งข้อมูลจริง',
+            description: 'AI Knowledge & Creation Platform สำหรับสร้างหนังสือ สไลด์ คู่มือ งานวิจัย และผลงานเผยแพร่จากแหล่งข้อมูลจริง',
             offers: FALLBACK_PLANS.map(p => ({
               '@type': 'Offer',
               name: p.name,
@@ -78,89 +138,200 @@ const Home = () => {
         ]}
       />
 
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-2 border-b border-border bg-background/90 px-4 py-2.5 backdrop-blur">
-        <Link to="/" className="flex items-center gap-2">
-          <PetalMark className="h-8 w-8" />
-          <span className="font-display text-sm font-bold md:text-base">KIVORA</span>
-        </Link>
-        <nav className="flex items-center gap-2">
-          <Link to="/pricing" className="hidden min-h-11 items-center px-3 text-xs font-ui font-bold text-muted-foreground sm:flex">
-            ราคา
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#070A18]/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3">
+          <Link to="/" className="flex min-w-0 items-center gap-2">
+            <PetalMark className="h-9 w-9 shrink-0" />
+            <span className="min-w-0">
+              <span className="block truncate font-display text-sm font-bold tracking-[0.2em]">KIVORA</span>
+              <span className="hidden truncate text-[10px] uppercase tracking-[0.18em] text-slate-400 sm:block">
+                Knowledge Into Creation
+              </span>
+            </span>
           </Link>
-          <Link to="/auth/sign-in" className="flex min-h-11 items-center rounded-full border border-border px-4 text-xs font-ui font-bold">
-            เข้าสู่ระบบ
-          </Link>
-          <Link to="/auth/sign-up" className="flex min-h-11 items-center rounded-full bg-gradient-ai px-4 text-xs font-ui font-bold text-primary-foreground">
-            เริ่มใช้ฟรี
-          </Link>
-        </nav>
+
+          <nav className="hidden items-center gap-6 text-xs font-ui font-bold text-slate-300 lg:flex">
+            <a href="#showcase" className="hover:text-white">ตัวอย่างผลงาน</a>
+            <a href="#features" className="hover:text-white">ความสามารถ</a>
+            <a href="#workflow" className="hover:text-white">วิธีทำงาน</a>
+            <Link to="/pricing" className="hover:text-white">ราคา</Link>
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <Link to="/auth/sign-in" className="hidden min-h-10 items-center rounded-xl border border-white/10 px-4 text-xs font-ui font-bold text-slate-200 sm:flex">
+              เข้าสู่ระบบ
+            </Link>
+            <Link to="/auth/sign-up" className="flex min-h-10 items-center rounded-xl bg-gradient-ai px-4 text-xs font-ui font-bold text-primary-foreground shadow-[var(--shadow-glow)]">
+              เริ่มใช้ฟรี
+            </Link>
+          </div>
+        </div>
       </header>
 
       <main>
-        {/* Hero */}
-        <section className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:py-16">
+        <section className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-12 md:py-16 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:py-20">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-[11px] font-ui font-bold uppercase tracking-[0.14em] text-primary">
-              <Sparkles className="h-3.5 w-3.5" /> AI Knowledge & Publishing Studio
-            </span>
-            <h1 className="mt-4 font-display text-3xl font-extrabold leading-[1.1] md:text-5xl">
-              <span className="text-gradient-ai">CREATE FROM KNOWLEDGE.</span>
-            </h1>
-            <p className="mt-3 max-w-xl text-sm font-body text-muted-foreground md:text-base">
-              แหล่งข้อมูลของคุณ → ความรู้ของคุณ → หนังสือของคุณ → พรีเซนเทชันของคุณ
-              ครบในที่เดียวด้วย AI ที่อ้างอิงข้อมูลจริงของคุณ
-            </p>
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-              <Link to="/auth/sign-up" className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-gradient-ai px-6 text-sm font-ui font-bold text-primary-foreground">
-                เริ่มใช้ฟรี <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link to="/pricing" className="flex min-h-12 items-center justify-center rounded-full border border-border px-6 text-sm font-ui font-bold">
-                ดูราคาและแผน
-              </Link>
+            <div className="inline-flex items-center gap-2 rounded-full border border-violet-400/30 bg-violet-400/10 px-3 py-1.5 text-[11px] font-ui font-bold uppercase tracking-[0.14em] text-violet-200">
+              <Sparkles className="h-3.5 w-3.5" />
+              CREATE FROM KNOWLEDGE
             </div>
-            <p className="mt-3 flex items-center gap-1.5 text-[11px] font-ui text-muted-foreground">
-              <ShieldCheck className="h-4 w-4 text-success" /> ไม่ต้องใช้บัตรเครดิต · งานของคุณเป็นของคุณ 100%
+
+            <h1 className="mt-5 max-w-3xl font-display text-4xl font-extrabold leading-[1.08] md:text-6xl">
+              เปลี่ยนความรู้ของคุณ
+              <span className="block text-gradient-ai">ให้กลายเป็นผลงาน</span>
+            </h1>
+
+            <p className="mt-5 max-w-2xl text-base leading-8 text-slate-300 md:text-lg">
+              KIVORA ช่วยเปลี่ยน YouTube, PDF, เว็บไซต์, Word, โน้ต และไอเดียของคุณ
+              ให้เป็นหนังสือ eBook คู่มือ งานวิจัย สไลด์ มังงะ และคอนเทนต์เผยแพร่ได้ในที่เดียว
             </p>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link to="/auth/sign-up" className="press flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-ai px-6 text-sm font-ui font-bold text-primary-foreground shadow-[var(--shadow-glow)]">
+                เริ่มสร้างผลงานฟรี
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <a href="#showcase" className="press flex min-h-12 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-6 text-sm font-ui font-bold text-slate-100">
+                ดูตัวอย่างผลงาน
+              </a>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs font-ui text-slate-400">
+              <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-success" /> ไม่ต้องใช้บัตรเครดิต</span>
+              <span>Source-grounded AI</span>
+              <span>PDF · DOCX · EPUB · PPTX</span>
+            </div>
           </div>
-          <div className="mx-auto w-full max-w-sm">
-            <FullLogo className="w-full rounded-3xl border border-border" />
+
+          <div className="grid gap-4">
+            <div className="rounded-3xl border border-white/10 bg-[#090E1D] p-5 shadow-2xl shadow-black/30">
+              <FullLogo className="mx-auto w-full max-w-md" />
+              <p className="mx-auto mt-3 max-w-md text-center font-ui text-sm text-slate-300">
+                <span className="text-gradient-ai font-bold">Turn Knowledge Into Anything</span>
+                <span className="block">เปลี่ยนทุกความรู้ ให้กลายเป็นทุกผลงาน</span>
+              </p>
+              <div className="mt-6 grid grid-cols-5 gap-2 text-center">
+                {[
+                  ['AI', 'Powered'],
+                  ['Book', 'Knowledge'],
+                  ['Create', 'Studio'],
+                  ['Any', 'Format'],
+                  ['Publish', 'Export'],
+                ].map(([a, b]) => (
+                  <div key={a} className="rounded-2xl border border-white/10 bg-white/[0.03] p-3">
+                    <div className="text-xs font-display font-bold text-slate-100">{a}</div>
+                    <div className="mt-1 text-[10px] font-ui text-slate-500">{b}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {OUTPUTS.map(item => (
+                <div key={item.label} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#10172B] p-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10 text-violet-300">
+                    <item.icon className="h-5 w-5" />
+                  </span>
+                  <span className="text-sm font-ui font-bold text-slate-100">{item.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
-        {/* Features */}
-        <section className="mx-auto w-full max-w-6xl px-4 pb-10">
-          <h2 className="font-display text-xl font-extrabold md:text-3xl">ทุกอย่างที่คุณต้องใช้ในการตีพิมพ์</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map(f => (
-              <div key={f.title} className="rounded-2xl border border-border bg-card p-4">
-                <f.icon className="h-5 w-5 text-primary" />
-                <h3 className="mt-2 font-display text-sm font-bold">{f.title}</h3>
-                <p className="mt-1 text-xs font-ui text-muted-foreground">{f.body}</p>
+        <section id="showcase" className="mx-auto w-full max-w-7xl px-4 py-12">
+          <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-end">
+            <div>
+              <p className="text-xs font-ui font-bold uppercase tracking-[0.16em] text-cyan-300">AI Showcase</p>
+              <h2 className="mt-2 font-display text-2xl font-extrabold md:text-4xl">ตัวอย่างผลงานที่สร้างได้</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-400">
+                ให้ผู้ใช้เห็นทันทีว่า KIVORA ไม่ได้เป็นแค่แชต แต่เป็น workspace สำหรับสร้างชิ้นงานที่นำไปใช้ต่อได้จริง
+              </p>
+            </div>
+            <Link to="/auth/sign-up" className="text-sm font-ui font-bold text-cyan-300">
+              เริ่มจากตัวอย่างนี้ →
+            </Link>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {SHOWCASES.map(item => (
+              <article key={item.title} className="group overflow-hidden rounded-2xl border border-white/10 bg-[#10172B]">
+                <div className="aspect-[4/3] overflow-hidden bg-[#151D34]">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105 group-hover:opacity-100"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-4">
+                  <span className="rounded-full bg-violet-500/10 px-2 py-1 text-[10px] font-ui font-bold text-violet-300">AI DEMO</span>
+                  <h3 className="mt-3 font-display text-sm font-bold">{item.title}</h3>
+                  <p className="mt-1 text-xs font-ui text-slate-400">{item.type}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section id="features" className="border-y border-white/10 bg-[#090E1D]">
+          <div className="mx-auto w-full max-w-7xl px-4 py-14">
+            <div className="mx-auto mb-8 max-w-3xl text-center">
+              <p className="text-xs font-ui font-bold uppercase tracking-[0.16em] text-violet-300">One Workspace</p>
+              <h2 className="mt-2 font-display text-2xl font-extrabold md:text-4xl">ตั้งแต่แหล่งข้อมูลจนถึงไฟล์ส่งออก</h2>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {FEATURES.map(feature => (
+                <div key={feature.title} className="rounded-2xl border border-white/10 bg-[#11172B] p-5">
+                  <feature.icon className="h-6 w-6 text-violet-300" />
+                  <h3 className="mt-4 font-display text-base font-bold">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-slate-400">{feature.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="workflow" className="mx-auto w-full max-w-7xl px-4 py-14">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-xs font-ui font-bold uppercase tracking-[0.16em] text-pink-300">Simple Workflow</p>
+            <h2 className="mt-2 font-display text-2xl font-extrabold md:text-4xl">จากข้อมูลสู่ผลงานใน 4 ขั้นตอน</h2>
+          </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-4">
+            {[
+              ['01', 'เพิ่มข้อมูล', 'YouTube · PDF · Website · Notes'],
+              ['02', 'AI ทำความเข้าใจ', 'Summary · Knowledge · Citation'],
+              ['03', 'เลือกสิ่งที่จะสร้าง', 'Book · Research · Present · More'],
+              ['04', 'แก้ไขและ Publish', 'PDF · DOCX · EPUB · PPTX'],
+            ].map(([number, title, text]) => (
+              <div key={number} className="rounded-2xl border border-white/10 bg-[#10172B] p-5">
+                <div className="font-display text-3xl font-extrabold text-white/10">{number}</div>
+                <h3 className="mt-1 font-display text-base font-bold">{title}</h3>
+                <p className="mt-2 text-xs leading-6 text-slate-400">{text}</p>
               </div>
             ))}
           </div>
         </section>
 
-        {/* Pricing teaser */}
-        <section className="mx-auto w-full max-w-6xl px-4 pb-10">
-          <h2 className="font-display text-xl font-extrabold md:text-3xl">แผนที่โตไปกับงานของคุณ</h2>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="mx-auto w-full max-w-7xl px-4 pb-14">
+          <h2 className="font-display text-2xl font-extrabold md:text-4xl">แผนที่โตไปกับงานของคุณ</h2>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {FALLBACK_PLANS.map(p => (
-              <div key={p.code} className={`rounded-2xl p-[1px] ${p.badge === 'MOST POPULAR' ? 'bg-gradient-ai' : 'bg-border'}`}>
-                <div className="flex h-full flex-col rounded-2xl bg-card p-4">
+              <div key={p.code} className={`rounded-2xl p-[1px] ${p.badge === 'MOST POPULAR' ? 'bg-gradient-ai' : 'bg-white/10'}`}>
+                <div className="flex h-full flex-col rounded-2xl bg-[#10172B] p-4">
                   <span className="font-display text-sm font-bold uppercase">{p.name}</span>
                   <span className="mt-1 font-display text-2xl font-extrabold">
                     ฿{p.price_thb.toLocaleString()}
-                    {p.price_thb > 0 && <span className="text-xs font-ui text-muted-foreground"> / เดือน</span>}
+                    {p.price_thb > 0 && <span className="text-xs font-ui text-slate-500"> / เดือน</span>}
                   </span>
                   <ul className="mt-3 flex flex-1 flex-col gap-1">
                     {PLAN_HIGHLIGHTS[p.code].slice(0, 4).map(h => (
-                      <li key={h} className="flex items-start gap-1.5 text-[11px] font-ui text-muted-foreground">
+                      <li key={h} className="flex items-start gap-1.5 text-[11px] font-ui text-slate-400">
                         <Check className="mt-0.5 h-3 w-3 shrink-0 text-success" /> {h}
                       </li>
                     ))}
                   </ul>
-                  <Link to="/auth/sign-up" className="mt-3 flex min-h-11 items-center justify-center rounded-full border border-border text-xs font-ui font-bold">
+                  <Link to="/auth/sign-up" className="mt-3 flex min-h-10 items-center justify-center rounded-xl border border-white/10 text-xs font-ui font-bold">
                     เริ่มต้น
                   </Link>
                 </div>
@@ -169,32 +340,19 @@ const Home = () => {
           </div>
         </section>
 
-        {/* FAQ — AEO: ตอบคำถามตรง ๆ ให้ search & answer engine ดึงไปใช้ */}
-        <section className="mx-auto w-full max-w-3xl px-4 pb-12">
-          <h2 className="font-display text-xl font-extrabold md:text-3xl">คำถามที่พบบ่อย</h2>
-          <div className="mt-4 flex flex-col gap-2">
-            {FAQS.map(f => (
-              <details key={f.q} className="group rounded-2xl border border-border bg-card p-4">
-                <summary className="cursor-pointer list-none font-display text-sm font-bold marker:hidden">
-                  {f.q}
-                </summary>
-                <p className="mt-2 text-xs font-body leading-relaxed text-muted-foreground md:text-sm">{f.a}</p>
-              </details>
-            ))}
-          </div>
-        </section>
-
-
-        <section className="mx-auto w-full max-w-4xl px-4 pb-16 text-center">
-          <h2 className="font-display text-xl font-extrabold md:text-3xl">พร้อมเปลี่ยนความรู้ของคุณเป็นผลงาน?</h2>
-          <Link to="/auth/sign-up" className="mx-auto mt-4 flex min-h-12 w-full max-w-xs items-center justify-center gap-2 rounded-full bg-gradient-ai text-sm font-ui font-bold text-primary-foreground">
+        <section className="border-t border-white/10 bg-[#090E1D] px-4 py-14 text-center">
+          <h2 className="font-display text-2xl font-extrabold md:text-4xl">พร้อมเปลี่ยนความรู้ของคุณเป็นผลงาน?</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-400">
+            เริ่มจากไอเดียเดียว หรืออัปโหลดแหล่งข้อมูลของคุณ แล้วให้ KIVORA ช่วยวางโครง สร้าง และส่งออกผลงาน
+          </p>
+          <Link to="/auth/sign-up" className="mx-auto mt-6 flex min-h-12 w-full max-w-xs items-center justify-center gap-2 rounded-2xl bg-gradient-ai text-sm font-ui font-bold text-primary-foreground">
             สร้างบัญชีฟรี <ArrowRight className="h-4 w-4" />
           </Link>
         </section>
       </main>
 
-      <footer className="border-t border-border px-4 py-6 text-center text-[11px] font-ui text-muted-foreground">
-        KIVORA · AI Knowledge, Book & Presentation Studio
+      <footer className="border-t border-white/10 px-4 py-6 text-center text-[11px] font-ui text-slate-500">
+        KIVORA · Knowledge Into Creation
       </footer>
     </div>
   );
