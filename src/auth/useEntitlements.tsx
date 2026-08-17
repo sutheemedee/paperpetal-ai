@@ -95,11 +95,12 @@ export const EntitlementsProvider = ({ children }: { children: React.ReactNode }
         return false;
       }
     },
-    [user, call, account, setAccount, handleBlocked, openUpgrade],
+    [user, call, account, setAccount, handleBlocked, openUpgrade, unrestricted],
   );
 
   const check = useCallback(
     async (metric: UsageMetric, quantity = 1) => {
+      if (unrestricted) return true;
       if (!user) {
         openUpgrade({ kind: 'auth', title: 'เข้าสู่ระบบเพื่อใช้ AI', detail: 'สร้างบัญชีฟรีเพื่อเริ่มใช้งาน PaperPetal AI' });
         return false;
