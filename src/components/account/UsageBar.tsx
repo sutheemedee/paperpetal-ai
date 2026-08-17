@@ -10,7 +10,24 @@ const TONE: Record<string, string> = {
 
 export const UsageBar = ({ metric, compact }: { metric: UsageMetric; compact?: boolean }) => {
   const { usage } = useEntitlements();
-  const { used, limit, ratio, tone, label } = usage(metric);
+  const { used, limit, ratio, tone, label, unlimited } = usage(metric);
+
+  if (unlimited) {
+    return (
+      <div>
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="text-[11px] font-ui font-semibold uppercase tracking-wide text-muted-foreground">{label}</span>
+          <span className="text-xs font-ui font-bold tabular-nums">
+            {used.toLocaleString()} <span className="text-muted-foreground">/ ∞</span>
+          </span>
+        </div>
+        <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-elevated">
+          <div className="h-full w-full rounded-full bg-gradient-ai" />
+        </div>
+        {!compact && <p className="mt-1 text-[11px] font-ui text-muted-foreground">สิทธิ์ Admin — ใช้งานได้ไม่จำกัด (∞)</p>}
+      </div>
+    );
+  }
 
   return (
     <div>
