@@ -25,7 +25,7 @@ const AddSourceDialog = ({
   initialType?: SourceType;
 }) => {
   const { addSource, sources } = useKnowledge();
-  const { consume, requireFeature, openUpgrade, unrestricted } = useEntitlements();
+  const { track } = useEntitlements();
   const { account } = useAuth();
   const [tab, setTab] = useState<SourceType>(initialType ?? 'youtube');
   useEffect(() => {
@@ -37,18 +37,9 @@ const AddSourceDialog = ({
   const [busy, setBusy] = useState(false);
 
   const submit = async (payload: { sourceType: SourceType; url?: string; text?: string; title?: string }) => {
-    const maxSources = unrestricted ? null : (account?.entitlements?.sourcesPerProject ?? null);
-    if (maxSources !== null && sources.length >= maxSources) {
-      openUpgrade({
-        kind: 'quota',
-        title: 'คุณใช้จำนวนแหล่งข้อมูลครบตามแผนแล้ว',
-        detail: `แผนนี้รองรับ ${maxSources} แหล่งข้อมูลต่อโปรเจกต์ — อัปเกรดเพื่อเพิ่มแหล่งข้อมูล`,
-        planCode: account?.planCode,
-      });
-      return;
-    }
-    if (payload.sourceType === 'youtube' && !requireFeature('youtube', 'YouTube Knowledge')) return;
-    if (!(await consume({ metric: 'sourceProcessing', operation: `ingest_${payload.sourceType}` }))) return;
+    // แนบข้อมูลจากภายนอกได้ทุกสิทธิ์ ไม่หักเครดิต — เครดิตจะใช้เมื่อแปลงเป็น e-book เท่านั้น
+    track('source_attached', { sourceType: payload.sourceType });
+
 
     setBusy(true);
     try {

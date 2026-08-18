@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { admin, corsHeaders, isAdmin, json, loadAccount, requireUser } from '../_shared/entitlements.ts';
-import { listAiProvidersForAdmin, maskSecret } from '../_shared/ai-providers.ts';
+import { listAiProvidersForAdmin } from '../_shared/ai-providers.ts';
 
 /**
  * Provider-agnostic subscription lifecycle.
@@ -228,37 +228,64 @@ serve(async (req) => {
     }
 
     if (action === 'admin_ai_providers') {
-      const providers = await listAiProvidersForAdmin();
-      const { data: rawProviders } = await db
-        .from('ai_provider_settings')
-        .select('id, api_key');
-      const masked = providers.map((p: any) => ({
-        ...p,
-        key_mask: maskSecret(rawProviders?.find((r: any) => r.id === p.id)?.api_key),
-      }));
-      return json({ providers: masked });
+      return json({ providers: await listAiProvidersForAdmin() });
     }
+
+    if (action === 'admin_sales') {
+      const { data: invoices } = await db
+        .from('invoices')
+        .select('id, user_id, plan_code, amount_thb, status, provider, created_at')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      const { data: audit } = await db
+        .from('admin_audit_log')
+        .select('id, action, target_user_id, details, created_at')
+        .order('created_at', { ascending: false })
+        .limit(30);
+      const paid = (invoices ?? []).filter(i => i.status === 'paid');
+      const revenue = paid.reduce((sum, i) => sum + Number(i.amount_thb ?? 0), 0);
+      const pending = (invoices ?? []).filter(i => i.status === 'pending');
+      const byMonth: Record<string, number> = {};
+      for (const i of paid) {
+        const key = String(i.created_at).slice(0, 7);
+        byMonth[key] = (byMonth[key] ?? 0) + Number(i.amount_thb ?? 0);
+      }
+      return json({
+        invoices: invoices ?? [],
+        audit: audit ?? [],
+        revenue,
+        paidCount: paid.length,
+        pendingCount: pending.length,
+        pendingAmount: pending.reduce((s, i) => s + Number(i.amount_thb ?? 0), 0),
+        byMonth,
+      });
+    }
+
 
     if (action === 'admin_save_ai_provider') {
       const provider = String(body.provider ?? '');
       const label = String(body.label ?? provider).trim();
       const apiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
-      const chatModel = String(body.chatModel ?? '').trim();
+      const capability = ['text', 'image', 'both'].includes(String(body.capability)) ? String(body.capability) : 'text';
       const imageModel = typeof body.imageModel === 'string' ? body.imageModel.trim() : null;
+      const chatModel = String(body.chatModel ?? '').trim() || (capability === 'image' ? (imageModel ?? 'image') : '');
       const baseUrl = typeof body.baseUrl === 'string' && body.baseUrl.trim() ? body.baseUrl.trim() : null;
       const enabled = body.enabled !== false;
       const priority = Math.max(1, Math.min(999, Number(body.priority ?? 100)));
       const id = typeof body.id === 'string' && body.id ? body.id : null;
 
-      if (!['gemini', 'openrouter', 'lovable'].includes(provider)) return json({ error: 'invalid_provider' }, 400);
+      if (!['gemini', 'openai', 'openrouter', 'lovable'].includes(provider)) return json({ error: 'invalid_provider' }, 400);
       if (!chatModel) return json({ error: 'chat_model_required' }, 400);
+      if (capability !== 'text' && !imageModel) return json({ error: 'image_model_required' }, 400);
       if (!id && !apiKey) return json({ error: 'api_key_required' }, 400);
 
       const patch: Record<string, unknown> = {
         provider,
+        capability,
         label,
         base_url: baseUrl,
         chat_model: chatModel,
+
         image_model: imageModel,
         enabled,
         priority,
@@ -282,7 +309,7 @@ serve(async (req) => {
       await db.from('admin_audit_log').insert({
         admin_id: user.id,
         action: id ? 'update_ai_provider' : 'create_ai_provider',
-        details: { id: savedId, provider, label, chatModel, enabled, priority },
+        details: { id: savedId, provider, capability, label, chatModel, enabled, priority },
       });
       return json({ ok: true, id: savedId });
     }
