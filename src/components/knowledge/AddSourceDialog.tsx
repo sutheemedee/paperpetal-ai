@@ -25,7 +25,7 @@ const AddSourceDialog = ({
   initialType?: SourceType;
 }) => {
   const { addSource, sources } = useKnowledge();
-  const { consume, requireFeature, openUpgrade, unrestricted } = useEntitlements();
+  const { track } = useEntitlements();
   const { account } = useAuth();
   const [tab, setTab] = useState<SourceType>(initialType ?? 'youtube');
   useEffect(() => {
