@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { generateImage } from "../_shared/ai-providers.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,7 +41,7 @@ serve(async (req) => {
 
   try {
     const { prompt } = await req.json();
-    
+
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Missing prompt' }), {
         status: 400,
@@ -48,56 +49,30 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      return new Response(JSON.stringify({ imageUrl: fallbackImage(prompt), fallback: true, fallbackReason: "image_provider_not_configured" }), {
+    try {
+      const { imageUrl, provider } = await generateImage(prompt);
+      return new Response(JSON.stringify({ imageUrl, provider: provider.provider, model: provider.image_model }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e);
+      console.error('image providers failed:', message);
+      const notConfigured = message.includes('image_provider_not_configured');
+      const outOfCredit = /:402|insufficient|quota|billing/i.test(message);
+      return new Response(
+        JSON.stringify({
+          imageUrl: fallbackImage(prompt),
+          fallback: true,
+          fallbackReason: notConfigured
+            ? 'image_provider_not_configured'
+            : outOfCredit
+              ? 'image_provider_out_of_credit'
+              : 'image_provider_failed',
+          detail: message.slice(0, 300),
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
     }
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [
-          { role: "user", content: prompt },
-        ],
-        modalities: ["image", "text"],
-      }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ imageUrl: fallbackImage(prompt), fallback: true, fallbackReason: "ai_gateway_unavailable" }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      return new Response(JSON.stringify({ error: "Image generation failed" }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-
-    if (!imageUrl) {
-      console.error("No image in response:", JSON.stringify(data).slice(0, 500));
-      return new Response(JSON.stringify({ error: "No image generated" }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    return new Response(JSON.stringify({ imageUrl }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
   } catch (e) {
     console.error("generate-image error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
