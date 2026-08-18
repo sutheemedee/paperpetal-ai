@@ -28,8 +28,15 @@ serve(async (req) => {
       if (!METRICS.includes(metric)) return json({ error: 'invalid_metric' }, 400);
       const quantity = Math.max(1, Math.min(500, Number(body.quantity ?? 1)));
 
+      // Attaching / processing external sources is always free: it is only the
+      // conversion into an e-book (aiPages / aiImages / slides / exports) that costs credits.
+      if (metric === 'sourceProcessing') {
+        return json({ allowed: true, metric, used: account.counters[metric] ?? 0, limit: null, account });
+      }
+
       // Operator accounts (unlimited plan or admin role) bypass every cap and guard.
       const unrestricted = account.planCode === 'unlimited' || (await isAdmin(user.id));
+
 
       const limit = limitFor(account.entitlements, metric);
       const bonus = account.bonus[metric] ?? 0;
