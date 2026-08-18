@@ -267,8 +267,8 @@ serve(async (req) => {
       const label = String(body.label ?? provider).trim();
       const apiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
       const capability = ['text', 'image', 'both'].includes(String(body.capability)) ? String(body.capability) : 'text';
-      const chatModel = String(body.chatModel ?? '').trim();
       const imageModel = typeof body.imageModel === 'string' ? body.imageModel.trim() : null;
+      const chatModel = String(body.chatModel ?? '').trim() || (capability === 'image' ? (imageModel ?? 'image') : '');
       const baseUrl = typeof body.baseUrl === 'string' && body.baseUrl.trim() ? body.baseUrl.trim() : null;
       const enabled = body.enabled !== false;
       const priority = Math.max(1, Math.min(999, Number(body.priority ?? 100)));
@@ -276,6 +276,7 @@ serve(async (req) => {
 
       if (!['gemini', 'openai', 'openrouter', 'lovable'].includes(provider)) return json({ error: 'invalid_provider' }, 400);
       if (!chatModel) return json({ error: 'chat_model_required' }, 400);
+      if (capability !== 'text' && !imageModel) return json({ error: 'image_model_required' }, 400);
       if (!id && !apiKey) return json({ error: 'api_key_required' }, 400);
 
       const patch: Record<string, unknown> = {
@@ -284,6 +285,7 @@ serve(async (req) => {
         label,
         base_url: baseUrl,
         chat_model: chatModel,
+
         image_model: imageModel,
         enabled,
         priority,
