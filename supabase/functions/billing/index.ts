@@ -228,16 +228,39 @@ serve(async (req) => {
     }
 
     if (action === 'admin_ai_providers') {
-      const providers = await listAiProvidersForAdmin();
-      const { data: rawProviders } = await db
-        .from('ai_provider_settings')
-        .select('id, api_key');
-      const masked = providers.map((p: any) => ({
-        ...p,
-        key_mask: maskSecret(rawProviders?.find((r: any) => r.id === p.id)?.api_key),
-      }));
-      return json({ providers: masked });
+      return json({ providers: await listAiProvidersForAdmin() });
     }
+
+    if (action === 'admin_sales') {
+      const { data: invoices } = await db
+        .from('invoices')
+        .select('id, user_id, plan_code, amount_thb, status, provider, created_at')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      const { data: audit } = await db
+        .from('admin_audit_log')
+        .select('id, action, target_user_id, details, created_at')
+        .order('created_at', { ascending: false })
+        .limit(30);
+      const paid = (invoices ?? []).filter(i => i.status === 'paid');
+      const revenue = paid.reduce((sum, i) => sum + Number(i.amount_thb ?? 0), 0);
+      const pending = (invoices ?? []).filter(i => i.status === 'pending');
+      const byMonth: Record<string, number> = {};
+      for (const i of paid) {
+        const key = String(i.created_at).slice(0, 7);
+        byMonth[key] = (byMonth[key] ?? 0) + Number(i.amount_thb ?? 0);
+      }
+      return json({
+        invoices: invoices ?? [],
+        audit: audit ?? [],
+        revenue,
+        paidCount: paid.length,
+        pendingCount: pending.length,
+        pendingAmount: pending.reduce((s, i) => s + Number(i.amount_thb ?? 0), 0),
+        byMonth,
+      });
+    }
+
 
     if (action === 'admin_save_ai_provider') {
       const provider = String(body.provider ?? '');
