@@ -1,6 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { admin, corsHeaders, isAdmin, json, loadAccount, requireUser } from '../_shared/entitlements.ts';
-import { listAiProvidersForAdmin, maskSecret } from '../_shared/ai-providers.ts';
+import { listAiProvidersForAdmin } from '../_shared/ai-providers.ts';
 
 /**
  * Provider-agnostic subscription lifecycle.
@@ -266,6 +266,7 @@ serve(async (req) => {
       const provider = String(body.provider ?? '');
       const label = String(body.label ?? provider).trim();
       const apiKey = typeof body.apiKey === 'string' ? body.apiKey.trim() : '';
+      const capability = ['text', 'image', 'both'].includes(String(body.capability)) ? String(body.capability) : 'text';
       const chatModel = String(body.chatModel ?? '').trim();
       const imageModel = typeof body.imageModel === 'string' ? body.imageModel.trim() : null;
       const baseUrl = typeof body.baseUrl === 'string' && body.baseUrl.trim() ? body.baseUrl.trim() : null;
@@ -273,12 +274,13 @@ serve(async (req) => {
       const priority = Math.max(1, Math.min(999, Number(body.priority ?? 100)));
       const id = typeof body.id === 'string' && body.id ? body.id : null;
 
-      if (!['gemini', 'openrouter', 'lovable'].includes(provider)) return json({ error: 'invalid_provider' }, 400);
+      if (!['gemini', 'openai', 'openrouter', 'lovable'].includes(provider)) return json({ error: 'invalid_provider' }, 400);
       if (!chatModel) return json({ error: 'chat_model_required' }, 400);
       if (!id && !apiKey) return json({ error: 'api_key_required' }, 400);
 
       const patch: Record<string, unknown> = {
         provider,
+        capability,
         label,
         base_url: baseUrl,
         chat_model: chatModel,
@@ -305,7 +307,7 @@ serve(async (req) => {
       await db.from('admin_audit_log').insert({
         admin_id: user.id,
         action: id ? 'update_ai_provider' : 'create_ai_provider',
-        details: { id: savedId, provider, label, chatModel, enabled, priority },
+        details: { id: savedId, provider, capability, label, chatModel, enabled, priority },
       });
       return json({ ok: true, id: savedId });
     }
