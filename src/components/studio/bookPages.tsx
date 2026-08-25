@@ -1,5 +1,5 @@
 import { ImagePlus, Loader2, RefreshCw } from 'lucide-react';
-import { pageKey, type IllustrationStore } from '@/hooks/useIllustrations';
+import { isUsableImageUrl, pageKey, type IllustrationStore } from '@/hooks/useIllustrations';
 import type { BookSize } from '@/utils/bookSizes';
 
 export interface FlatPage {
@@ -48,6 +48,12 @@ interface PageCanvasProps {
   coverImageUrl?: string;
   backCoverImageUrl?: string;
   onOpenImage?: (url: string, caption: string) => void;
+  onMakeChapter?: (chapter: any) => Promise<boolean>;
+  onMakePage?: (chapter: any, page: any) => Promise<boolean>;
+  onMakeCover?: () => Promise<boolean>;
+  onMakeBackCover?: () => Promise<boolean>;
+  coverBusy?: boolean;
+  backCoverBusy?: boolean;
 }
 
 /** One book page rendered at its real page size — aspect ratio is never distorted. */
@@ -59,6 +65,12 @@ const BookPageCanvas = ({
   coverImageUrl,
   backCoverImageUrl,
   onOpenImage,
+  onMakeChapter,
+  onMakePage,
+  onMakeCover,
+  onMakeBackCover,
+  coverBusy = false,
+  backCoverBusy = false,
 }: PageCanvasProps) => {
   const w = bookSize.pageWidth || 559;
   const h = bookSize.pageHeight || 794;
@@ -69,7 +81,10 @@ const BookPageCanvas = ({
   const style = { width: w, height: h, padding: `${m.top}px ${m.right}px ${m.bottom}px ${m.left}px` };
 
   if (entry.kind === 'cover' || entry.kind === 'back') {
-    const url = entry.kind === 'cover' ? coverImageUrl : backCoverImageUrl;
+    const isCover = entry.kind === 'cover';
+    const url = isCover ? coverImageUrl : backCoverImageUrl;
+    const busy = isCover ? coverBusy : backCoverBusy;
+    const make = isCover ? onMakeCover : onMakeBackCover;
     return (
       <div className={shell} style={{ width: w, height: h }}>
         {url ? (
@@ -80,17 +95,35 @@ const BookPageCanvas = ({
             className="h-full w-full cursor-zoom-in object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-secondary text-sm font-ui text-muted-foreground">
-            กำลังสร้างภาพปก...
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-secondary px-6 text-center text-sm font-ui text-muted-foreground">
+            <span>{busy ? 'AI กำลังสร้างภาพปก...' : 'ยังไม่มีภาพปกสำหรับหน้านี้'}</span>
+            {make && (
+              <button
+                onClick={() => void make()}
+                disabled={busy}
+                className="min-h-11 rounded-full border border-border bg-background px-4 text-xs font-ui font-bold text-foreground disabled:opacity-60"
+              >
+                {busy ? 'กำลังสร้าง...' : `สร้าง${isCover ? 'ปกหน้า' : 'ปกหลัง'}`}
+              </button>
+            )}
           </div>
+        )}
+        {url && make && (
+          <button
+            onClick={() => void make()}
+            disabled={busy}
+            className="absolute right-4 top-4 rounded-full bg-background/95 px-4 py-2 text-xs font-ui font-bold text-foreground shadow-sm backdrop-blur disabled:opacity-60"
+          >
+            {busy ? 'กำลังสร้าง...' : 'สร้างใหม่'}
+          </button>
         )}
         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/75 to-transparent p-8">
           <p className="font-ui text-sm uppercase tracking-[0.25em] text-[#00CFFF]">{bookData.author}</p>
           <h2 className="mt-2 font-heading text-3xl font-bold text-white">
-            {entry.kind === 'cover' ? bookData.title : 'ปกหลัง'}
+            {isCover ? bookData.title : 'ปกหลัง'}
           </h2>
           <p className="mt-2 font-body text-base text-white/85">
-            {entry.kind === 'cover' ? bookData.subtitle : bookData.backCoverText}
+            {isCover ? bookData.subtitle : bookData.backCoverText}
           </p>
         </div>
       </div>
@@ -113,7 +146,8 @@ const BookPageCanvas = ({
 
   if (entry.kind === 'chapter') {
     const chapter = entry.chapter;
-    const img = chapterImages[chapter.chapterNumber];
+    const chapterUrl = chapterImages[chapter.chapterNumber] || chapter.imageUrl;
+    const img = isUsableImageUrl(chapterUrl) ? chapterUrl : '';
     const busy = pending[`ch-${chapter.chapterNumber}`];
     return (
       <div className={shell} style={style}>
@@ -127,7 +161,7 @@ const BookPageCanvas = ({
               className="h-56 w-full cursor-zoom-in object-cover"
             />
             <button
-              onClick={() => makeChapter(chapter, bookData.title)}
+              onClick={() => void (onMakeChapter ? onMakeChapter(chapter) : makeChapter(chapter, bookData.title))}
               disabled={busy}
               className="absolute right-3 top-3 flex min-h-11 items-center gap-1.5 rounded-full bg-background/95 px-4 text-sm font-ui shadow-sm backdrop-blur"
             >
@@ -137,7 +171,7 @@ const BookPageCanvas = ({
           </div>
         ) : (
           <button
-            onClick={() => makeChapter(chapter, bookData.title)}
+            onClick={() => void (onMakeChapter ? onMakeChapter(chapter) : makeChapter(chapter, bookData.title))}
             disabled={busy}
             className="flex h-48 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-secondary text-base font-ui text-muted-foreground"
           >
@@ -157,7 +191,8 @@ const BookPageCanvas = ({
   const chapter = entry.chapter;
   const page = entry.page;
   const key = pageKey(chapter.chapterNumber, page.pageNumber);
-  const img = pageImages[key];
+  const pageUrl = pageImages[key] || page.imageUrl;
+  const img = isUsableImageUrl(pageUrl) ? pageUrl : '';
   const busy = pending[`pg-${key}`];
 
   return (
@@ -177,7 +212,7 @@ const BookPageCanvas = ({
             className="h-52 w-full cursor-zoom-in object-cover"
           />
           <button
-            onClick={() => makePage(chapter, page, bookData.title)}
+            onClick={() => void (onMakePage ? onMakePage(chapter, page) : makePage(chapter, page, bookData.title))}
             disabled={busy}
             aria-label="สร้างภาพใหม่"
             className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full bg-background/95 shadow-sm backdrop-blur"
@@ -195,7 +230,7 @@ const BookPageCanvas = ({
       <div className="absolute inset-x-0 bottom-4 flex items-center justify-between px-8">
         {!img ? (
           <button
-            onClick={() => makePage(chapter, page, bookData.title)}
+            onClick={() => void (onMakePage ? onMakePage(chapter, page) : makePage(chapter, page, bookData.title))}
             disabled={busy}
             className="flex min-h-11 items-center gap-2 rounded-full border border-border bg-secondary px-4 text-sm font-ui"
           >

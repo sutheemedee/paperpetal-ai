@@ -1,0 +1,1299 @@
+--- BookStudioV2 ---
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { BookOpenCheck, FileDown, Save, Sparkles, Wand2 } from 'lucide-react';
+import StudioLayout from '@/components/studio/StudioLayout';
+import ZoomPanCanvas from '@/components/studio/ZoomPanCanvas';
+import ImageViewer from '@/components/studio/ImageViewer';
+import BookPageCanvas, { flattenBook } from '@/components/studio/bookPages';
+import BookSizeSelector from '@/components/BookSizeSelector';
+import StyleTemplateUploader from '@/components/StyleTemplateUploader';
+import CoverDesigner from '@/components/CoverDesigner';
+import ExportMenu, { ExportFormat } from '@/components/ExportMenu';
+import UsageBar from '@/components/account/UsageBar';
+import { BOOK_SIZES, BookSize } from '@/utils/bookSizes';
+import { generateBook, StyleProfile } from '@/utils/generateBook';
+import { generateBackCoverImage, generateCoverImage } from '@/utils/imageGen';
+import { exportCoverAsPng } from '@/utils/exportCovers';
+import { exportToDocx } from '@/utils/exportDocx';
+import { exportToEpub } from '@/utils/exportEpub';
+import { exportToPdf } from '@/utils/exportPdf';
+import { hydrateBook, useIllustrations } from '@/hooks/useIllustrations';
+import { useDevice } from '@/hooks/use-device';
+import { useKnowledge } from '@/knowledge/store';
+import { useAuth } from '@/auth/AuthProvider';
+import { useEntitlements } from '@/auth/useEntitlements';
+import { supabase } from '@/integrations/supabase/client';
+import { getTemplate } from '@/templates/catalog';
+import { readCreationDraft } from '@/templates/store';
+import { BOOK_THEMES, COVER_STYLES, FONT_LIBRARY, designDefaultsFor, fontById, styleById, themeById } from '@/templates/visualPreview';
+import { toast } from 'sonner';
+
+const PAGE_COUNTS = [20, 40, 60, 80, 120];
+const LANGUAGES = [
+  { id: 'thai', label: 'ไทย' },
+  { id: 'english', label: 'English' },
+];
+
+const buttonBase = 'min-h-11 rounded-xl border px-3 text-sm font-ui transition-colors';
+
+const BookStudioV2 = () => {
+  const [params] = useSearchParams();
+  const { isMobile } = useDevice();
+  const illustrations = useIllustrations();
+  const { activeSources, chatPayloadSources } = useKnowledge();
+  const { consume, check, requireFeature, unrestricted } = useEntitlements();
+  const { user, refresh, account, isAdmin } = useAuth();
+
+  const [projectId, setProjectId] = useState<string | null>(null);
+  const [title, setTitle] = useState('');
+  const [pageCount, setPageCount] = useState(60);
+  const [selectedSize, setSelectedSize] = useState<BookSize>(BOOK_SIZES[1]);
+  const [designThemeId, setDesignThemeId] = useState('ai-technology');
+  const [coverStyleId, setCoverStyleId] = useState('modern');
+  const [fontId, setFontId] = useState('noto-sans-thai');
+  const [language, setLanguage] = useState('thai');
+  const [sourceMode, setSourceMode] = useState('source_ai');
+  const [styleProfile, setStyleProfile] = useState<StyleProfile | null>(null);
+  const [bookData, setBookData] = useState<any>(null);
+  const [coverImageUrl, setCoverImageUrl] = useState('');
+  const [backCoverImageUrl, setBackCoverImageUrl] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [exporting, setExporting] = useState('');
+  const [illustrateAll, setIllustrateAll] = useState(false);
+  const [current, setCurrent] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [progressText, setProgressText] = useState('');
+  const [viewer, setViewer] = useState<{ url: string; caption: string } | null>(null);
+  const [cameFromCreate, setCameFromCreate] = useState(false);
+  const [autoStartReady, setAutoStartReady] = useState(false);
+  const [autoStarted, setAutoStarted] = useState(false);
+
+  const selectedTheme = themeById(designThemeId);
+  const selectedCoverStyle = styleById(coverStyleId);
+  const selectedFont = fontById(fontId);
+  const pages = useMemo(() => (bookData ? flattenBook(bookData) : []), [bookData]);
+  const entry = pages[Math.min(current, Math.max(pages.length - 1, 0))];
+
+  useEffect(() => {
+    const draft = readCreationDraft();
+    if (!draft) return;
+    const template = getTemplate(draft.templateId);
+    const defaults = designDefaultsFor(template);
+    setTitle(draft.topic || template?.name || '');
+    setPageCount(draft.pages || template?.defaultPageCount || 60);
+    setLanguage(draft.language || 'thai');
+    setDesignThemeId(draft.designThemeId || defaults.themeId);
+    setCoverStyleId(draft.coverStyleId || defaults.styleId);
+    setFontId(draft.fontId || defaults.fontId);
+    setSourceMode(draft.sourceIds?.length ? 'source_ai' : 'creative');
+    setCameFromCreate(Boolean(draft.autoStart || params.get('start') === '1'));
+    setAutoStartReady(Boolean(draft.autoStart || params.get('start') === '1'));
+    setStyleProfile({
+      tone: draft.tone || template?.writingDNA.tone || 'ชัดเจน เป็นมิตร มืออาชีพ',
+      complexity: template?.writingDNA.sentenceComplexity || 'medium',
+      language: draft.language || 'thai',
+      sentenceStyle: template?.writingDNA.paragraphLength || 'medium',
+      characteristics: [`Template: ${template?.name ?? draft.templateId}`, `Audience: ${draft.audience}`],
+      vocabularyLevel: template?.writingDNA.technicalLevel || 'intermediate',
+      writingPersona: 'KIVORA AI Design Director',
+      styleInstructions: `วางงานตามเทมเพลต ${template?.name ?? draft.templateId} และปรับภาษาให้เหมาะกับ ${draft.audience}`,
+    });
+  }, [params]);
+
+  const applyAiDesign = () => {
+    const lower = title.toLowerCase();
+    const pick =
+      lower.includes('เด็ก') || lower.includes('kids')
+        ? { themeId: 'kids', styleId: 'kids', fontId: 'mitr', pages: 32 }
+        : lower.includes('manga') || lower.includes('มังงะ') || lower.includes('comic')
+          ? { themeId: 'dark-premium', styleId: 'manga', fontId: 'kanit', pages: 48 }
+          : lower.includes('ธุรกิจ') || lower.includes('business') || lower.includes('marketing')
+            ? { themeId: 'business', styleId: 'editorial', fontId: 'ibm-plex-sans-thai', pages: 80 }
+            : lower.includes('วิจัย') || lower.includes('research') || lower.includes('academic')
+              ? { themeId: 'academic', styleId: 'academic', fontId: 'noto-serif-thai', pages: 90 }
+              : { themeId: 'ai-technology', styleId: 'modern', fontId: 'kanit', pages: 60 };
+    setDesignThemeId(pick.themeId);
+    setCoverStyleId(pick.styleId);
+    setFontId(pick.fontId);
+    if (!bookData) setPageCount(pick.pages);
+    toast.success('AI Design Director เลือกชุดออกแบบให้แล้ว');
+  };
+
+  const designProfile = (): StyleProfile => ({
+    tone: styleProfile?.tone || 'ชัดเจน เป็นมิตร มืออาชีพ',
+    complexity: styleProfile?.complexity || 'medium',
+    language,
+    sentenceStyle: styleProfile?.sentenceStyle || 'balanced',
+    characteristics: [
+      ...(styleProfile?.characteristics ?? []),
+      `Book theme: ${selectedTheme.name} - ${selectedTheme.description}`,
+      `Cover style: ${selectedCoverStyle.name} - ${selectedCoverStyle.description}`,
+      `Font pairing: ${selectedFont.name} - ${selectedFont.description}`,
+    ],
+    vocabularyLevel: styleProfile?.vocabularyLevel || 'intermediate',
+    writingPersona: styleProfile?.writingPersona || 'KIVORA AI Design Director',
+    styleInstructions: [
+      styleProfile?.styleInstructions,
+      `ออกแบบเป็นหนังสือจริง ใช้ mood ${selectedTheme.name}, cover composition ${selectedCoverStyle.composition}, font ${selectedFont.name}.`,
+      'ภาษาไทยต้องอ่านง่าย หัวข้อไม่ทับกัน และแบ่งบทให้เหมาะกับการส่งออก PDF/EPUB.',
+    ].filter(Boolean).join('\n'),
+  });
+
+  const handleGenerate = async () => {
+    if (!title.trim()) {
+      toast.error('กรุณากรอกหัวข้อหนังสือ');
+      return;
+    }
+    if (!(await consume({ metric: 'aiPages', quantity: pageCount, operation: 'generate_book' }))) return;
+    setGenerating(true);
+    setBookData(null);
+    setCoverImageUrl('');
+    setBackCoverImageUrl('');
+    setCurrent(0);
+    illustrations.reset();
+
+    try {
+      setProgress(25);
+      setProgressText('กำลังวางโครงสร้างและเขียนเนื้อหา...');
+      const book = await generateBook(title, pageCount, language, designProfile(), chatPayloadSources(), sourceMode);
+      if (!book) throw new Error('สร้างหนังสือไม่สำเร็จ');
+      setBookData(book);
+      setProgress(65);
+      setProgressText('กำลังสร้างปกหน้าและปกหลัง...');
+      if (await consume({ metric: 'aiImages', quantity: 2, operation: 'generate_covers' })) {
+        const [front, back] = await Promise.all([generateCoverImage(book, selectedTheme.name), generateBackCoverImage(book)]);
+        setCoverImageUrl(front);
+        setBackCoverImageUrl(back);
+      }
+      setProgress(100);
+      setProgressText('เสร็จแล้ว');
+      toast.success('สร้างหนังสือสำเร็จ');
+    } catch (err: any) {
+      toast.error(err?.message || 'สร้างหนังสือไม่สำเร็จ');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!autoStartReady || autoStarted || generating || bookData || !title.trim()) return;
+    setAutoStarted(true);
+    void handleGenerate();
+  }, [autoStartReady, autoStarted, generating, bookData, title]);
+
+  const saveProject = async () => {
+    if (!bookData || !user) return;
+    setSaving(true);
+    const payload = {
+      name: bookData.title || title || 'Untitled book',
+      kind: 'book',
+      cover_url: coverImageUrl || null,
+      data: { bookData, size: selectedSize.id, designThemeId, coverStyleId, fontId, language, coverImageUrl, backCoverImageUrl },
+    };
+    const { error } = projectId
+      ? await supabase.from('projects').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', projectId)
+      : await supabase.from('projects').insert({ ...payload, user_id: user.id }).select('id').single().then(res => {
+          if (res.data) setProjectId(res.data.id);
+          return { error: res.error };
+        });
+    setSaving(false);
+    if (error) return toast.error('บันทึกโปรเจกต์ไม่สำเร็จ');
+    refresh();
+    toast.success('บันทึกโปรเจกต์แล้ว');
+  };
+
+  const handleIllustrateAll = async () => {
+    if (!bookData || illustrateAll) return;
+    const targets = Math.max(1, flattenBook(bookData).length);
+    if (!(await consume({ metric: 'aiImages', quantity: targets, operation: 'illustrate_all' }))) return;
+    setIllustrateAll(true);
+    await illustrations.makeAll(bookData);
+    setIllustrateAll(false);
+    toast.success('สร้างภาพประกอบครบแล้ว');
+  };
+
+  const handleExport = async (format: ExportFormat) => {
+    if (!bookData) return;
+    const featureGate: Record<ExportFormat, { key: 'pdf' | 'docx' | 'epub'; label: string } | null> = {
+      pdf: { key: 'pdf', label: 'ส่งออก PDF' },
+      docx: { key: 'docx', label: 'ส่งออก Word (.docx)' },
+      epub: { key: 'epub', label: 'ส่งออก EPUB' },
+      png: null,
+    };
+    const gate = featureGate[format];
+    if (gate && !requireFeature(gate.key, gate.label)) return;
+    if (!(await check('exports'))) return;
+
+    const hydrated = hydrateBook(bookData, illustrations.chapterImages, illustrations.pageImages);
+    setExporting(format);
+    try {
+      if (format === 'docx') await exportToDocx(hydrated, selectedSize, coverImageUrl);
+      else if (format === 'pdf') await exportToPdf(hydrated, selectedSize, { coverImageUrl, chapterImages: illustrations.chapterImages }, (_pct, label) => setProgressText(label));
+      else if (format === 'epub') await exportToEpub(hydrated, { coverImageUrl, chapterImages: illustrations.chapterImages });
+      else {
+        await exportCoverAsPng('front-cover', 'front-cover.png');
+        await exportCoverAsPng('back-cover', 'back-cover.png');
+      }
+      await consume({ metric: 'exports', operation: 'export_book', format, projectId });
+      toast.success('ส่งออกสำเร็จ');
+    } catch (err: any) {
+      toast.error(`ส่งออกไม่สำเร็จ: ${err?.message || 'ไม่ทราบสาเหตุ'}`);
+    } finally {
+      setExporting('');
+    }
+  };
+
+  const optionClass = (active: boolean) => `${buttonBase} ${active ? 'border-primary bg-primary/10 font-bold text-foreground' : 'border-border bg-background hover:bg-card'}`;
+  const setupLocked = cameFromCreate || Boolean(bookData);
+
+  const director = (
+    <div className="flex flex-col gap-5 pb-4">
+      <section>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <label className="block text-sm font-ui font-bold" htmlFor="book-topic">หัวข้อหนังสือ</label>
+          <button type="button" onClick={applyAiDesign} className="rounded-full border border-primary/40 px-3 py-1.5 text-[11px] font-ui font-bold text-primary">
+            ✨ ให้ AI เลือกให้
+          </button>
+        </div>
+        <textarea id="book-topic" value={title} onChange={e => setTitle(e.target.value)} rows={3} placeholder="เช่น: สร้างคู่มือสอนใช้ AI สำหรับผู้สูงอายุ" className="w-full resize-none rounded-xl border border-border bg-background px-3 py-3 text-sm font-ui leading-relaxed focus:outline-none focus:ring-2 focus:ring-ring" />
+        <div className="mt-3 rounded-xl border border-border bg-card p-3 text-[11px] font-ui leading-relaxed text-muted-foreground">
+          <strong className="text-foreground">AI Design Director:</strong> {selectedSize.label} · {pageCount} หน้า · {selectedTheme.name} · {selectedCoverStyle.name} · {selectedFont.name}
+        </div>
+        {(unrestricted || isAdmin || account?.planCode === 'unlimited') && (
+          <div className="mt-2 rounded-xl border border-primary/20 bg-primary/10 p-2 text-[11px] font-ui font-bold text-primary">
+            UNLIMITED: สร้างหนังสือ พรีเซนเทชัน เทมเพลต และส่งออกได้ ไม่แสดงเครดิตหมด
+          </div>
+        )}
+      </section>
+
+      {setupLocked && (
+        <section className="rounded-xl border border-primary/20 bg-primary/10 p-3 text-xs font-ui leading-relaxed">
+          <div className="font-bold text-foreground">ตั้งค่าจากหน้า Create แล้ว</div>
+          <div className="mt-1 text-muted-foreground">
+            ระบบใช้เทมเพลต ฟอนต์ ธีมปก จำนวนหน้า ภาษา และแหล่งข้อมูลที่เลือกไว้ก่อนหน้า แล้วเริ่มสร้างงานให้อัตโนมัติ
+          </div>
+        </section>
+      )}
+
+      <div className={setupLocked ? 'hidden' : 'contents'}>
+      <section>
+        <div className="mb-2 text-sm font-ui font-bold">จำนวนหน้า</div>
+        <div className="flex flex-wrap gap-2">{PAGE_COUNTS.map(n => <button key={n} onClick={() => setPageCount(n)} className={optionClass(pageCount === n)}>{n}</button>)}</div>
+      </section>
+
+      <BookSizeSelector selected={selectedSize} onChange={setSelectedSize} />
+
+      <section>
+        <div className="mb-2 text-sm font-ui font-bold">ธีมสีหนังสือ</div>
+        <div className="grid grid-cols-2 gap-2">
+          {BOOK_THEMES.map(theme => (
+            <button key={theme.id} type="button" onClick={() => setDesignThemeId(theme.id)} className={`min-h-[92px] rounded-xl border p-2 text-left ${designThemeId === theme.id ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
+              <span className={`mb-2 block h-8 rounded-lg bg-gradient-to-br ${theme.bg}`} />
+              <span className="block text-xs font-ui font-bold">{theme.name}</span>
+              <span className="mt-1 line-clamp-2 block text-[10px] font-ui leading-relaxed text-muted-foreground">{theme.description}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-2 text-sm font-ui font-bold">รูปแบบการออกแบบปก</div>
+        <div className="grid grid-cols-2 gap-2">
+          {COVER_STYLES.map(style => (
+            <button key={style.id} type="button" onClick={() => setCoverStyleId(style.id)} className={`rounded-xl border p-3 text-left ${coverStyleId === style.id ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
+              <span className="block text-xs font-ui font-bold">{style.name}</span>
+              <span className="mt-1 line-clamp-2 block text-[10px] font-ui leading-relaxed text-muted-foreground">{style.description}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-2 text-sm font-ui font-bold">ฟอนต์หนังสือ</div>
+        <div className="grid gap-2">
+          {FONT_LIBRARY.map(font => (
+            <button key={font.id} type="button" onClick={() => setFontId(font.id)} className={`rounded-xl border p-3 text-left ${fontId === font.id ? 'border-primary bg-primary/10' : 'border-border bg-background'}`}>
+              <span className="block text-sm font-bold" style={{ fontFamily: font.stack }}>{font.sample}</span>
+              <span className="mt-1 block text-[10px] font-ui text-muted-foreground">{font.name} — {font.description}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-2 text-sm font-ui font-bold">ภาษา</div>
+        <div className="flex gap-2">{LANGUAGES.map(l => <button key={l.id} onClick={() => setLanguage(l.id)} className={`flex-1 ${optionClass(language === l.id)}`}>{l.label}</button>)}</div>
+      </section>
+
+      <section>
+        <label className="mb-2 block text-sm font-ui font-bold" htmlFor="source-mode">ใช้คลังความรู้ ({activeSources.length} แหล่ง)</label>
+        <select id="source-mode" value={sourceMode} onChange={e => setSourceMode(e.target.value)} className="min-h-11 w-full rounded-xl border border-border bg-background px-3 text-sm font-ui">
+          <option value="source_only">ใช้แหล่งข้อมูลเท่านั้น (Source Lock สูง)</option>
+          <option value="source_ai">แหล่งข้อมูลเป็นหลัก + AI เสริม</option>
+          <option value="creative">สร้างสรรค์อิสระ</option>
+        </select>
+      </section>
+
+      <StyleTemplateUploader onStyleExtracted={setStyleProfile} />
+      </div>
+
+      {generating && (
+        <div className="animate-fade-in">
+          <div className="mb-1 text-xs font-ui text-muted-foreground">{progressText}</div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-accent"><div className="h-1.5 rounded-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} /></div>
+        </div>
+      )}
+
+      {!bookData && <button onClick={handleGenerate} disabled={generating || !title.trim()} className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-full text-sm font-ui font-bold ${generating || !title.trim() ? 'cursor-not-allowed bg-accent text-muted-foreground' : 'bg-gradient-ai text-primary-foreground shadow-md'}`}>
+        <Sparkles className="h-4 w-4" /> {generating ? 'กำลังสร้าง...' : 'สร้างหนังสือ'}
+      </button>}
+
+      {bookData && (
+        <>
+          <button onClick={handleIllustrateAll} disabled={illustrateAll} className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-card text-sm font-ui font-bold disabled:opacity-60">
+            <Wand2 className="h-4 w-4" /> {illustrateAll ? 'AI กำลังวาด...' : 'วาดภาพประกอบทุกส่วน'}
+          </button>
+          <button onClick={saveProject} disabled={saving} className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-card text-sm font-ui font-bold disabled:opacity-60">
+            <Save className="h-4 w-4" /> {saving ? 'กำลังบันทึก...' : projectId ? 'บันทึกการแก้ไข' : 'บันทึกเป็นโปรเจกต์'}
+          </button>
+          <UsageBar metric="aiPages" compact />
+          <div>
+            <div className="mb-2 flex items-center gap-2 text-sm font-ui font-bold"><FileDown className="h-4 w-4" /> ส่งออก</div>
+            <ExportMenu onExport={handleExport} busy={!!exporting} busyLabel="กำลังส่งออก..." fullWidth />
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  const navigator = bookData ? (
+    <ul className="flex flex-col gap-1.5">
+      {pages.map((p, i) => (
+        <li key={p.id}>
+          <button onClick={() => setCurrent(i)} className={`flex min-h-11 w-full items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm font-ui ${i === current ? 'border-primary bg-accent font-bold' : 'border-border bg-card'}`}>
+            <span className="w-6 shrink-0 text-xs text-muted-foreground">{i + 1}</span>
+            <span className="line-clamp-2 min-w-0">{p.label}</span>
+          </button>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p className="text-sm font-ui text-muted-foreground">ยังไม่มีหนังสือ กรอกหัวข้อหรือเลือกเทมเพลตจาก Library แล้วเริ่มสร้างได้เลย</p>
+  );
+
+  return (
+    <>
+      <StudioLayout
+        title={bookData ? bookData.title : 'KIVORA Book Studio'}
+        subtitle={bookData ? `${pages.length} หน้า · ${selectedSize.label}` : 'Template → Project Setup → Book Studio'}
+        left={{ label: 'บท / หน้า', content: navigator }}
+        right={{ label: 'AI Design Director', content: director }}
+        headerActions={bookData && !isMobile ? <ExportMenu onExport={handleExport} busy={!!exporting} /> : undefined}
+      >
+        {bookData && entry ? (
+          <ZoomPanCanvas
+            contentWidth={selectedSize.pageWidth || 559}
+            contentHeight={selectedSize.pageHeight || 794}
+            label={`${current + 1}/${pages.length} · ${entry.label}`}
+            onPrev={current > 0 ? () => setCurrent(c => Math.max(0, c - 1)) : undefined}
+            onNext={current < pages.length - 1 ? () => setCurrent(c => Math.min(pages.length - 1, c + 1)) : undefined}
+          >
+            <BookPageCanvas entry={entry} bookData={bookData} bookSize={selectedSize} illustrations={illustrations} coverImageUrl={coverImageUrl} backCoverImageUrl={backCoverImageUrl} onOpenImage={(url, caption) => setViewer({ url, caption })} />
+          </ZoomPanCanvas>
+        ) : (
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 overflow-y-auto p-6 text-center">
+            <BookOpenCheck className="h-14 w-14 text-primary" />
+            <h2 className="font-heading text-2xl font-bold leading-snug">พร้อมสร้างหนังสือของคุณ</h2>
+            <p className="max-w-md text-sm font-body leading-relaxed text-muted-foreground">
+              เลือกเทมเพลตแล้วระบบจะเติมค่ามาให้ หรือพิมพ์หัวข้อแล้วให้ AI Design Director เลือกขนาด ธีม ฟอนต์ และรูปแบบปกให้เอง
+            </p>
+            <div className="w-full max-w-md text-left xl:hidden">{director}</div>
+          </div>
+        )}
+      </StudioLayout>
+
+      {bookData && (
+        <div aria-hidden className="pointer-events-none fixed -left-[9999px] top-0 w-[320px]">
+          <CoverDesigner bookData={bookData} coverImageUrl={coverImageUrl} backCoverImageUrl={backCoverImageUrl} colorTheme={selectedTheme.name} onRegenerateCover={async () => setCoverImageUrl(await generateCoverImage(bookData, selectedTheme.name))} onRegenerateBack={async () => setBackCoverImageUrl(await generateBackCoverImage(bookData))} />
+        </div>
+      )}
+--- exportEpub ---
+import JSZip from 'jszip';
+import { saveAs } from 'file-saver';
+
+const esc = (s: string) =>
+  String(s || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+const paras = (body: string) =>
+  String(body || '')
+    .split(/\n{1,}/)
+    .filter(Boolean)
+    .map(p => `<p>${esc(p)}</p>`)
+    .join('\n');
+
+const dataUrlToBytes = (url: string): { bytes: Uint8Array; ext: string } | null => {
+  const match = /^data:image\/(png|jpeg|jpg|webp);base64,(.*)$/i.exec(url);
+  if (!match) return null;
+  const binary = atob(match[2]);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return { bytes, ext: match[1].toLowerCase() === 'jpg' ? 'jpeg' : match[1].toLowerCase() };
+};
+
+const fetchImageBytes = async (url: string) => {
+  if (!url) return null;
+  const inline = dataUrlToBytes(url);
+  if (inline) return inline;
+  try {
+    const res = await fetch(url);
+    const buf = new Uint8Array(await res.arrayBuffer());
+    const type = res.headers.get('content-type') || 'image/png';
+    return { bytes: buf, ext: type.includes('jpeg') ? 'jpeg' : type.includes('webp') ? 'webp' : 'png' };
+  } catch {
+    return null;
+  }
+};
+
+interface EpubOptions {
+  coverImageUrl?: string;
+  chapterImages?: Record<number, string>;
+}
+
+const CSS = `body{font-family:serif;line-height:1.75;margin:1.2em}
+h1,h2,h3{font-family:serif;line-height:1.3}
+.eyebrow{letter-spacing:.2em;text-transform:uppercase;font-size:.75em;opacity:.6}
+img{max-width:100%;height:auto;border-radius:6px}
+.center{text-align:center}`;
+
+export const exportToEpub = async (bookData: any, options: EpubOptions = {}) => {
+  const zip = new JSZip();
+  zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
+  zip.file(
+    'META-INF/container.xml',
+    `<?xml version="1.0" encoding="UTF-8"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles><rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/></rootfiles>
+</container>`,
+  );
+
+  const oebps = zip.folder('OEBPS')!;
+  oebps.file('style.css', CSS);
+
+  const manifest: string[] = [`<item id="css" href="style.css" media-type="text/css"/>`];
+  const spine: string[] = [];
+  const nav: string[] = [];
+
+  // Cover image
+  let coverMeta = '';
+  const cover = await fetchImageBytes(options.coverImageUrl || '');
+  if (cover) {
+    oebps.file(`images/cover.${cover.ext}`, cover.bytes);
+    manifest.push(`<item id="cover-image" href="images/cover.${cover.ext}" media-type="image/${cover.ext}" properties="cover-image"/>`);
+    coverMeta = `<meta name="cover" content="cover-image"/>`;
+  }
+
+  const addDoc = (id: string, filename: string, title: string, body: string) => {
+    oebps.file(
+      filename,
+      `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="th"><head>
+<meta charset="utf-8"/><title>${esc(title)}</title><link rel="stylesheet" type="text/css" href="style.css"/>
+</head><body>${body}</body></html>`,
+    );
+    manifest.push(`<item id="${id}" href="${filename}" media-type="application/xhtml+xml"/>`);
+    spine.push(`<itemref idref="${id}"/>`);
+    nav.push(`<li><a href="${filename}">${esc(title)}</a></li>`);
+  };
+
+  addDoc(
+    'titlepage',
+    'titlepage.xhtml',
+    bookData.title || 'E-Book',
+    `<div class="center">
+      ${cover ? `<img src="images/cover.${cover.ext}" alt="cover"/>` : ''}
+      <h1>${esc(bookData.title)}</h1>
+      <p>${esc(bookData.subtitle || '')}</p>
+      <p class="eyebrow">${esc(bookData.author || '')}</p>
+    </div>`,
+  );
+
+  let idx = 0;
+  for (const chapter of bookData.chapters || []) {
+    idx++;
+    const img = await fetchImageBytes(options.chapterImages?.[chapter.chapterNumber] || '');
+    let imgTag = '';
+    if (img) {
+      const name = `images/ch${idx}.${img.ext}`;
+      oebps.file(name, img.bytes);
+      manifest.push(`<item id="img-ch${idx}" href="${name}" media-type="image/${img.ext}"/>`);
+      imgTag = `<img src="${name}" alt="${esc(chapter.chapterTitle)}"/>`;
+    }
+
+    const pagesHtml: string[] = [];
+    for (const page of chapter.pages || []) {
+      let pageImg = '';
+      const pi = await fetchImageBytes(page.imageUrl || '');
+      if (pi) {
+        const name = `images/ch${idx}-p${page.pageNumber}.${pi.ext}`;
+        oebps.file(name, pi.bytes);
+        manifest.push(`<item id="img-ch${idx}p${page.pageNumber}" href="${name}" media-type="image/${pi.ext}"/>`);
+        pageImg = `<img src="${name}" alt="${esc(page.heading || 'illustration')}"/>`;
+      }
+      pagesHtml.push(`${page.heading ? `<h3>${esc(page.heading)}</h3>` : ''}${pageImg}${paras(page.body)}`);
+    }
+
+    addDoc(
+      `chap${idx}`,
+      `chap${idx}.xhtml`,
+      `บทที่ ${chapter.chapterNumber}: ${chapter.chapterTitle}`,
+      `${imgTag}<p class="eyebrow">บทที่ ${chapter.chapterNumber}</p><h2>${esc(chapter.chapterTitle)}</h2>${pagesHtml.join('\n')}`,
+    );
+  }
+
+  addDoc('conclusion', 'conclusion.xhtml', 'สรุป', `<h2>สรุป</h2>${paras(bookData.conclusion)}`);
+
+  oebps.file(
+    'nav.xhtml',
+    `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="th"><head>
+<meta charset="utf-8"/><title>สารบัญ</title></head><body>
+<nav epub:type="toc" id="toc"><h1>สารบัญ</h1><ol>${nav.join('')}</ol></nav>
+</body></html>`,
+  );
+  manifest.push(`<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>`);
+
+  const uid = `urn:uuid:${crypto.randomUUID()}`;
+  oebps.file(
+    'content.opf',
+    `<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="bookid">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="bookid">${uid}</dc:identifier>
+    <dc:title>${esc(bookData.title)}</dc:title>
+    <dc:creator>${esc(bookData.author || 'AI E-Book Studio')}</dc:creator>
+    <dc:language>th</dc:language>
+    <dc:description>${esc(bookData.description || bookData.subtitle || '')}</dc:description>
+    <meta property="dcterms:modified">${new Date().toISOString().replace(/\.\d+Z$/, 'Z')}</meta>
+    ${coverMeta}
+  </metadata>
+  <manifest>${manifest.join('')}</manifest>
+  <spine>${spine.join('')}</spine>
+</package>`,
+  );
+
+  const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/epub+zip' });
+  saveAs(blob, `${bookData.title || 'ebook'}.epub`);
+};
+--- exportPdf ---
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import type { BookSize } from './bookSizes';
+
+const esc = (s: string) =>
+  String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+interface PdfOptions {
+  coverImageUrl?: string;
+  chapterImages?: Record<number, string>;
+}
+
+/**
+ * Renders each book page as an offscreen HTML node, rasterises it with html2canvas
+ * (so Thai typography is preserved) and stitches everything into a PDF.
+ */
+export const exportToPdf = async (
+  bookData: any,
+  bookSize: BookSize,
+  options: PdfOptions = {},
+  onProgress?: (pct: number, label: string) => void,
+) => {
+  const wMm = bookSize.width || 148;
+  const hMm = bookSize.height || 210;
+  const pw = bookSize.pageWidth || 559;
+  const ph = bookSize.pageHeight || 794;
+  const m = bookSize.margins;
+
+  const host = document.createElement('div');
+  host.style.cssText = `position:fixed;left:-10000px;top:0;width:${pw}px;`;
+  document.body.appendChild(host);
+
+  const makePage = (inner: string, center = false) => {
+    const el = document.createElement('div');
+    el.style.cssText = `width:${pw}px;height:${ph}px;box-sizing:border-box;background:#fff;color:#111;
+      padding:${m.top}px ${m.right}px ${m.bottom}px ${m.left}px;overflow:hidden;
+      font-family:'Lora',serif;font-size:${bookSize.fontSize}px;line-height:${bookSize.lineHeight};
+      display:flex;flex-direction:column;${center ? 'justify-content:center;align-items:center;text-align:center;' : ''}`;
+    el.innerHTML = inner;
+    host.appendChild(el);
+    return el;
+  };
+
+  const pages: HTMLElement[] = [];
+
+  // Cover
+  pages.push(
+    makePage(
+      `${options.coverImageUrl ? `<img src="${options.coverImageUrl}" style="width:100%;height:55%;object-fit:cover;border-radius:8px" />` : ''}
+       <h1 style="font-family:'Playfair Display',serif;font-size:${bookSize.fontSize * 2.2}px;margin:24px 0 8px">${esc(bookData.title)}</h1>
+       <p style="opacity:.75;margin:0">${esc(bookData.subtitle || '')}</p>
+       <p style="margin-top:24px;letter-spacing:.2em;text-transform:uppercase;font-size:${bookSize.fontSize * 0.8}px">${esc(bookData.author || '')}</p>`,
+      true,
+    ),
+  );
+
+  // Table of contents
+  pages.push(
+    makePage(
+      `<h2 style="font-family:'Playfair Display',serif;font-size:${bookSize.fontSize * 1.6}px;margin:0 0 20px">สารบัญ</h2>
+       ${(bookData.chapters || [])
+         .map(
+           (c: any) =>
+             `<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dotted #ccc"><span>บทที่ ${c.chapterNumber} · ${esc(c.chapterTitle)}</span></div>`,
+         )
+         .join('')}`,
+    ),
+  );
+
+  for (const chapter of bookData.chapters || []) {
+    const img = options.chapterImages?.[chapter.chapterNumber];
+    pages.push(
+      makePage(
+        `${img ? `<img src="${img}" style="width:100%;height:32%;object-fit:cover;border-radius:8px;margin-bottom:20px" />` : ''}
+         <p style="letter-spacing:.25em;text-transform:uppercase;font-size:${bookSize.fontSize * 0.75}px;opacity:.6;margin:0">บทที่ ${chapter.chapterNumber}</p>
+         <h2 style="font-family:'Playfair Display',serif;font-size:${bookSize.fontSize * 1.8}px;margin:8px 0 0">${esc(chapter.chapterTitle)}</h2>
+         <div style="width:56px;height:3px;background:#FFC400;margin-top:12px"></div>`,
+      ),
+    );
+
+    for (const page of chapter.pages || []) {
+      pages.push(
+        makePage(
+          `${page.heading ? `<h3 style="font-family:'Playfair Display',serif;font-size:${bookSize.fontSize * 1.25}px;margin:0 0 10px">${esc(page.heading)}</h3>` : ''}
+           ${page.imageUrl ? `<img src="${page.imageUrl}" style="width:100%;height:26%;object-fit:cover;border-radius:8px;margin-bottom:14px" />` : ''}
+           <div style="white-space:pre-line;flex:1">${esc(page.body)}</div>
+           <div style="text-align:center;opacity:.5;font-size:${bookSize.fontSize * 0.75}px">— ${page.pageNumber} —</div>`,
+        ),
+      );
+    }
+  }
+
+  pages.push(
+    makePage(
+      `<h2 style="font-family:'Playfair Display',serif;font-size:${bookSize.fontSize * 1.6}px;margin:0 0 16px">สรุป</h2>
+       <div style="white-space:pre-line">${esc(bookData.conclusion || '')}</div>`,
+    ),
+  );
+
+  const pdf = new jsPDF({ unit: 'mm', format: [wMm, hMm], orientation: wMm > hMm ? 'landscape' : 'portrait' });
+
+  try {
+    for (let i = 0; i < pages.length; i++) {
+      onProgress?.(Math.round(((i + 1) / pages.length) * 100), `กำลังเรนเดอร์หน้า ${i + 1}/${pages.length}`);
+      const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const data = canvas.toDataURL('image/jpeg', 0.92);
+      if (i > 0) pdf.addPage([wMm, hMm], wMm > hMm ? 'landscape' : 'portrait');
+      pdf.addImage(data, 'JPEG', 0, 0, wMm, hMm);
+    }
+    pdf.save(`${bookData.title || 'ebook'}.pdf`);
+  } finally {
+    host.remove();
+  }
+};
+--- BookPreview ---
+import { ImagePlus, Loader2, RefreshCw } from 'lucide-react';
+import { pageKey, type IllustrationStore } from '@/hooks/useIllustrations';
+import type { BookSize } from '@/utils/bookSizes';
+
+interface BookPreviewProps {
+  bookData: any;
+  bookSize: BookSize;
+  illustrations: IllustrationStore;
+  scale?: number;
+}
+
+const BookPreview = ({ bookData, bookSize, illustrations, scale = 0.65 }: BookPreviewProps) => {
+  const pw = bookSize.pageWidth || 559;
+  const m = bookSize.margins;
+  const { chapterImages, pageImages, pending, makeChapter, makePage } = illustrations;
+
+  const pagePadding = `${m.top * scale}px ${m.right * scale}px ${m.bottom * scale}px ${m.left * scale}px`;
+
+  return (
+    <div className="flex w-full flex-col items-center gap-4">
+      {bookData.chapters.map((chapter: any) => {
+        const chImg = chapterImages[chapter.chapterNumber];
+        const chBusy = pending[`ch-${chapter.chapterNumber}`];
+        return (
+          <div key={chapter.chapterNumber} className="flex w-full flex-col items-center gap-4">
+            {/* Chapter opening page */}
+            <article
+              className="w-full max-w-full animate-fade-in overflow-hidden rounded-2xl border border-border bg-background shadow-[var(--shadow-soft)]"
+              style={{ width: pw * scale, padding: pagePadding }}
+            >
+              {chImg ? (
+                <div className="relative overflow-hidden rounded-xl">
+                  <img src={chImg} alt={chapter.chapterTitle} className="h-32 w-full object-cover sm:h-40" loading="lazy" />
+                  <button
+                    onClick={() => makeChapter(chapter, bookData.title)}
+                    disabled={chBusy}
+                    className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[11px] font-ui shadow-sm backdrop-blur transition-colors hover:bg-card disabled:opacity-60"
+                  >
+                    {chBusy ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                    สร้างใหม่
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => makeChapter(chapter, bookData.title)}
+                  disabled={chBusy}
+                  className="flex h-24 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-secondary text-xs font-ui text-muted-foreground transition-colors hover:bg-accent sm:h-32"
+                >
+                  {chBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                  {chBusy ? 'AI กำลังวาดภาพ...' : 'ให้ AI วาดภาพเปิดบท'}
+                </button>
+              )}
+              <p className="mt-3 text-[11px] font-ui uppercase tracking-[0.2em] text-muted-foreground">
+                บทที่ {chapter.chapterNumber}
+              </p>
+              <h3 className="mt-1 font-heading text-lg font-bold text-foreground sm:text-xl">{chapter.chapterTitle}</h3>
+              <div className="mt-2 h-0.5 w-12 bg-primary" />
+            </article>
+
+            {/* Chapter content pages */}
+            {chapter.pages.map((page: any) => {
+              const key = pageKey(chapter.chapterNumber, page.pageNumber);
+              const img = pageImages[key];
+              const busy = pending[`pg-${key}`];
+              return (
+                <article
+                  key={page.pageNumber}
+                  className="w-full max-w-full overflow-hidden rounded-2xl border border-border bg-background shadow-[var(--shadow-soft)]"
+                  style={{ width: pw * scale, padding: pagePadding }}
+                >
+                  {page.heading && (
+                    <h4
+                      className="mb-2 font-heading font-bold text-foreground"
+                      style={{ fontSize: Math.max(14, bookSize.fontSize * scale * 1.25) }}
+                    >
+                      {page.heading}
+                    </h4>
+                  )}
+
+                  {img && (
+                    <div className="relative mb-3 overflow-hidden rounded-xl">
+                      <img src={img} alt={page.heading || 'ภาพประกอบ'} className="h-28 w-full object-cover sm:h-36" loading="lazy" />
+                      <button
+                        onClick={() => makePage(chapter, page, bookData.title)}
+                        disabled={busy}
+                        className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-[11px] font-ui shadow-sm backdrop-blur hover:bg-card disabled:opacity-60"
+                      >
+                        {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                      </button>
+                    </div>
+                  )}
+
+                  <p
+                    className="whitespace-pre-line font-body text-foreground/90"
+                    style={{
+                      fontSize: Math.max(13, bookSize.fontSize * scale),
+                      lineHeight: bookSize.lineHeight,
+                    }}
+                  >
+                    {page.body}
+                  </p>
+
+                  <div className="mt-4 flex items-center justify-between">
+                    {!img ? (
+                      <button
+                        onClick={() => makePage(chapter, page, bookData.title)}
+                        disabled={busy}
+                        className="flex items-center gap-1.5 rounded-full border border-border bg-secondary px-3 py-1.5 text-[11px] font-ui text-foreground transition-colors hover:bg-accent disabled:opacity-60"
+                      >
+                        {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImagePlus className="h-3 w-3" />}
+                        {busy ? 'AI กำลังวาด...' : 'เพิ่มภาพประกอบ AI'}
+                      </button>
+                    ) : (
+                      <span />
+                    )}
+                    <span className="text-[10px] font-ui text-muted-foreground">— {page.pageNumber} —</span>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        );
+      })}
+
+      {/* Conclusion */}
+      <article
+        className="w-full max-w-full overflow-hidden rounded-2xl border border-border bg-background shadow-[var(--shadow-soft)]"
+        style={{ width: pw * scale, padding: pagePadding }}
+      >
+        <h3 className="mb-3 font-heading text-lg font-bold text-foreground">สรุป</h3>
+        <p
+          className="whitespace-pre-line font-body text-foreground/90"
+          style={{ fontSize: Math.max(13, bookSize.fontSize * scale), lineHeight: bookSize.lineHeight }}
+        >
+          {bookData.conclusion}
+        </p>
+      </article>
+    </div>
+  );
+};
+
+export default BookPreview;
+--- BookImage ---
+import { useState, useEffect } from 'react';
+
+interface BookImageProps {
+  src?: string;
+  generateFn?: () => Promise<string>;
+  width: string | number;
+  height: string | number;
+  alt: string;
+  className?: string;
+  onRegenerate?: () => void;
+}
+
+const BookImage = ({ src, generateFn, width, height, alt, className, onRegenerate }: BookImageProps) => {
+  const [imageUrl, setImageUrl] = useState(src || '');
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  const [generating, setGenerating] = useState(false);
+
+  useEffect(() => {
+    if (src) {
+      setImageUrl(src);
+      return;
+    }
+    if (generateFn && !imageUrl) {
+      setGenerating(true);
+      generateFn().then(url => {
+        if (url) {
+          setImageUrl(url);
+        } else {
+          setError(true);
+        }
+        setGenerating(false);
+      });
+    }
+  }, [src, generateFn]);
+
+  const handleRegenerate = () => {
+    setLoaded(false);
+    setError(false);
+    setImageUrl('');
+    if (generateFn) {
+      setGenerating(true);
+      generateFn().then(url => {
+        if (url) {
+          setImageUrl(url);
+        } else {
+          setError(true);
+        }
+        setGenerating(false);
+      });
+    }
+    onRegenerate?.();
+  };
+
+  return (
+    <div className={`relative overflow-hidden rounded-lg ${className || ''}`} style={{ width, height }}>
+      {(!loaded || generating) && !error && (
+        <div className="shimmer-bg absolute inset-0 flex items-center justify-center rounded-lg">
+          <span className="text-xs text-muted-foreground font-ui">
+            {generating ? 'กำลังสร้างภาพ AI...' : 'กำลังโหลดภาพ...'}
+          </span>
+        </div>
+      )}
+      {error && (
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center rounded-lg gap-2"
+          style={{ background: 'linear-gradient(135deg, hsl(48 100% 50%), hsl(43 100% 82%))' }}
+        >
+          <span className="text-xs text-primary-foreground font-ui">ไม่สามารถสร้างภาพได้</span>
+          {(generateFn || onRegenerate) && (
+            <button
+              onClick={handleRegenerate}
+              className="rounded-md border border-border bg-background/90 px-2 py-1 text-[11px] font-ui cursor-pointer hover:bg-card transition-colors"
+            >
+              🔄 ลองใหม่
+            </button>
+          )}
+        </div>
+      )}
+      {imageUrl && (
+        <img
+          src={imageUrl}
+          alt={alt}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: loaded ? 1 : 0,
+            transition: 'opacity 0.5s ease',
+          }}
+        />
+      )}
+      {loaded && !generating && (generateFn || onRegenerate) && (
+        <button
+          onClick={handleRegenerate}
+          className="absolute top-2 right-2 rounded-md border border-border bg-background/90 px-2 py-1 text-[11px] font-ui cursor-pointer hover:bg-card transition-colors"
+        >
+          🔄 สร้างใหม่
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default BookImage;
+--- useIllustrations ---
+import { useCallback, useState } from 'react';
+import { generateChapterImage, generateSectionImage } from '@/utils/imageGen';
+
+export const pageKey = (chapterNumber: number, pageNumber: number) => `${chapterNumber}-${pageNumber}`;
+
+export interface IllustrationStore {
+  chapterImages: Record<number, string>;
+  pageImages: Record<string, string>;
+  pending: Record<string, boolean>;
+  makeChapter: (chapter: any, bookTitle: string) => Promise<void>;
+  makePage: (chapter: any, page: any, bookTitle: string) => Promise<void>;
+  makeAll: (bookData: any, onProgress?: (done: number, total: number) => void) => Promise<void>;
+  reset: () => void;
+}
+
+export const useIllustrations = (): IllustrationStore => {
+  const [chapterImages, setChapterImages] = useState<Record<number, string>>({});
+  const [pageImages, setPageImages] = useState<Record<string, string>>({});
+  const [pending, setPending] = useState<Record<string, boolean>>({});
+
+  const mark = (key: string, value: boolean) =>
+    setPending(prev => ({ ...prev, [key]: value }));
+
+  const makeChapter = useCallback(async (chapter: any, bookTitle: string) => {
+    const key = `ch-${chapter.chapterNumber}`;
+    mark(key, true);
+    const url = await generateChapterImage(chapter.chapterTitle, bookTitle);
+    if (url) setChapterImages(prev => ({ ...prev, [chapter.chapterNumber]: url }));
+    mark(key, false);
+  }, []);
+
+  const makePage = useCallback(async (chapter: any, page: any, bookTitle: string) => {
+    const key = `pg-${pageKey(chapter.chapterNumber, page.pageNumber)}`;
+    mark(key, true);
+    const url = await generateSectionImage(
+      page.heading || chapter.chapterTitle,
+      page.body || '',
+      bookTitle,
+    );
+    if (url) setPageImages(prev => ({ ...prev, [pageKey(chapter.chapterNumber, page.pageNumber)]: url }));
+    mark(key, false);
+  }, []);
+
+  const makeAll = useCallback(
+    async (bookData: any, onProgress?: (done: number, total: number) => void) => {
+      const chapters = bookData?.chapters || [];
+      const jobs: (() => Promise<void>)[] = [];
+      for (const chapter of chapters) {
+        jobs.push(() => makeChapter(chapter, bookData.title));
+        for (const page of chapter.pages || []) {
+          if (page.heading) jobs.push(() => makePage(chapter, page, bookData.title));
+        }
+      }
+      let done = 0;
+      // small concurrency so the gateway isn't hammered
+      const workers = Array.from({ length: 3 }, async () => {
+        while (jobs.length) {
+          const job = jobs.shift();
+          if (!job) break;
+          await job();
+          done++;
+          onProgress?.(done, done + jobs.length);
+        }
+      });
+      await Promise.all(workers);
+    },
+    [makeChapter, makePage],
+  );
+
+  const reset = useCallback(() => {
+    setChapterImages({});
+    setPageImages({});
+    setPending({});
+  }, []);
+
+  return { chapterImages, pageImages, pending, makeChapter, makePage, makeAll, reset };
+};
+
+/** Merges generated illustrations into the book object so exporters can read them. */
+export const hydrateBook = (
+  bookData: any,
+  chapterImages: Record<number, string>,
+  pageImages: Record<string, string>,
+) => ({
+  ...bookData,
+  chapters: (bookData?.chapters || []).map((c: any) => ({
+    ...c,
+    imageUrl: chapterImages[c.chapterNumber] || '',
+    pages: (c.pages || []).map((p: any) => ({
+      ...p,
+      imageUrl: pageImages[pageKey(c.chapterNumber, p.pageNumber)] || '',
+    })),
+  })),
+});
+--- auth/protected/entitlements ---
+import { Navigate, useLocation } from 'react-router-dom';
+import Seo from '@/components/Seo';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/auth/AuthProvider';
+
+/** ชื่อหน้าใช้งานภายในแอป (ไม่ให้ index เพราะต้องล็อกอิน) */
+const APP_TITLES: Record<string, string> = {
+  '/dashboard': 'หน้าหลัก',
+  '/projects': 'โปรเจกต์ของฉัน',
+  '/knowledge': 'แหล่งข้อมูล',
+  '/chat': 'Ask KIVORA',
+  '/book': 'Book Studio',
+  '/present': 'Presentation Studio',
+  '/billing': 'บัญชีและการชำระเงิน',
+  '/admin': 'Admin Console',
+  '/onboarding': 'เริ่มต้นใช้งาน',
+};
+
+
+const Splash = () => (
+  <div className="flex min-h-[100dvh] items-center justify-center bg-background">
+    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+  </div>
+);
+
+export const ProtectedRoute = ({ children, adminOnly }: { children: React.ReactNode; adminOnly?: boolean }) => {
+  const { session, loading, isAdmin, profile } = useAuth();
+  const location = useLocation();
+
+  if (loading && !session) return <Splash />;
+  if (!session) return <Navigate to={`/auth/sign-in?next=${encodeURIComponent(location.pathname)}`} replace />;
+  if (loading) return <Splash />;
+  if (adminOnly && !isAdmin) return <Navigate to="/dashboard" replace />;
+  if (profile && !profile.onboarded && location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
+  return (
+    <>
+      <Seo
+        path={location.pathname}
+        title={`${APP_TITLES[location.pathname] || 'Studio'} | KIVORA`}
+        description="พื้นที่ทำงานส่วนตัวของ KIVORA"
+        noindex
+      />
+      {children}
+    </>
+  );
+};
+
+export default ProtectedRoute;
+import { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './AuthProvider';
+import { isUnlimitedPlanLike, METRIC_LABEL, PlanEntitlements, UsageMetric, usageRatio, usageTone } from '@/lib/plans';
+import UpgradeModal, { UpgradeReason } from '@/components/account/UpgradeModal';
+import QuotaAlertWatcher from '@/components/account/QuotaAlertWatcher';
+
+interface ConsumeInput {
+  metric: UsageMetric;
+  quantity?: number;
+  operation: string;
+  projectId?: string | null;
+  model?: string | null;
+  format?: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface Ctx {
+  /** Server-verified quota consumption. Returns false when blocked (modal shown). */
+  consume: (input: ConsumeInput) => Promise<boolean>;
+  /** Non-consuming pre-check, e.g. before starting a long generation. */
+  check: (metric: UsageMetric, quantity?: number) => Promise<boolean>;
+  /** Feature gate from the plan entitlements. */
+  can: (feature: keyof PlanEntitlements) => boolean;
+  requireFeature: (feature: keyof PlanEntitlements, label: string) => boolean;
+  usage: (metric: UsageMetric) => { used: number; limit: number | null; ratio: number; tone: string; label: string; unlimited: boolean };
+  /** True for admin / unlimited operator accounts — no credit caps at all. */
+  unrestricted: boolean;
+  track: (event: string, props?: Record<string, unknown>) => void;
+  openUpgrade: (reason: UpgradeReason) => void;
+}
+
+const EntitlementsContext = createContext<Ctx | null>(null);
+
+export const EntitlementsProvider = ({ children }: { children: React.ReactNode }) => {
+  const { account, setAccount, user, isAdmin } = useAuth();
+  const [reason, setReason] = useState<UpgradeReason | null>(null);
+  /** Operator accounts (admin role or unlimited plan) ignore every credit/quota rule. */
+  const unrestricted = isAdmin || isUnlimitedPlanLike(account);
+
+  const call = useCallback(async (body: Record<string, unknown>) => {
+    const { data, error } = await supabase.functions.invoke('entitlements', { body });
+    if (error) throw error;
+    return data;
+  }, []);
+
+  const openUpgrade = useCallback((r: UpgradeReason) => setReason(r), []);
+
+  const handleBlocked = useCallback(
+    (data: any, metric: UsageMetric) => {
+      if (data.reason === 'daily_export_limit') {
+        openUpgrade({
+          kind: 'daily_export',
+          title: 'คุณใช้สิทธิ์ดาวน์โหลดของวันนี้ครบแล้ว',
+          detail: `ดาวน์โหลดวันนี้: ${data.exportsToday} / ${data.perDay} · ดาวน์โหลดครั้งถัดไปได้พรุ่งนี้`,
+          planCode: data.planCode,
+        });
+      } else if (data.reason === 'rate_limited') {
+        openUpgrade({
+          kind: 'rate_limited',
+          title: 'ระบบกำลังตรวจสอบการใช้งานที่สูงผิดปกติ',
+          detail: 'งานของคุณปลอดภัย กรุณาลองอีกครั้งในอีกสักครู่',
+          planCode: data.planCode,
+        });
+      } else {
+        openUpgrade({
+          kind: 'quota',
+          title: `คุณใช้ ${METRIC_LABEL[metric]} ครบตามแผนแล้ว`,
+          detail: `ปัจจุบัน: ${data.used} / ${data.limit} ${METRIC_LABEL[metric]} — โปรเจกต์ของคุณยังปลอดภัยและแก้ไขต่อได้`,
+          planCode: data.planCode,
+        });
+      }
+    },
+    [openUpgrade],
+  );
+
+  const consume = useCallback(
+    async (input: ConsumeInput) => {
+      if (unrestricted) {
+        // Operator accounts are completely unmetered in-app: no check, no counter, no ledger.
+        return true;
+      }
+      if (!user) {
+        openUpgrade({ kind: 'auth', title: 'เข้าสู่ระบบเพื่อใช้ AI', detail: 'สร้างบัญชีฟรีเพื่อเริ่มใช้งาน KIVORA' });
+        return false;
+      }
+      try {
+        const data = await call({ action: 'consume', ...input, quantity: input.quantity ?? 1 });
+        if (data?.account) setAccount({ ...(account as any), ...data.account });
+        if (!data?.allowed) {
+          handleBlocked(data, input.metric);
+          return false;
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [user, call, account, setAccount, handleBlocked, openUpgrade, unrestricted],
+  );
+
+  const check = useCallback(
+    async (metric: UsageMetric, quantity = 1) => {
+      if (unrestricted) return true;
+      if (!user) {
+        openUpgrade({ kind: 'auth', title: 'เข้าสู่ระบบเพื่อใช้ AI', detail: 'สร้างบัญชีฟรีเพื่อเริ่มใช้งาน KIVORA' });
+        return false;
+      }
+      try {
+        const data = await call({ action: 'check', metric, quantity });
+        if (data?.account) setAccount({ ...(account as any), ...data.account });
+        if (!data?.allowed) {
+          handleBlocked(data, metric);
+          return false;
+        }
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [user, call, account, setAccount, handleBlocked, openUpgrade, unrestricted],
+  );
+
+  const can = useCallback(
+    (feature: keyof PlanEntitlements) => unrestricted || account?.entitlements?.[feature] === true,
+    [account, unrestricted],
+  );
+
+  const requireFeature = useCallback(
+    (feature: keyof PlanEntitlements, label: string) => {
+      if (can(feature)) return true;
+      openUpgrade({
+        kind: 'feature',
+        title: `${label} ใช้ได้ในแผนที่สูงขึ้น`,
+        detail: `อัปเกรดเพื่อปลดล็อก ${label} พร้อมสิทธิ์ AI เพิ่มขึ้น`,
+        planCode: account?.planCode,
+      });
+      return false;
+    },
+    [can, openUpgrade, account],
+  );
+
+  const usage = useCallback(
+    (metric: UsageMetric) => {
+      const used = account?.counters?.[metric] ?? 0;
+      if (unrestricted) {
+        return { used, limit: null, ratio: 0, tone: 'ok', label: METRIC_LABEL[metric], unlimited: true };
+      }
+      const base = (account?.entitlements as any)?.[metric] ?? null;
+      const bonus = account?.bonus?.[metric] ?? 0;
+      const limit = base === null || base === undefined ? null : Number(base) + bonus;
+      const ratio = usageRatio(used, limit);
+      return { used, limit, ratio, tone: usageTone(ratio), label: METRIC_LABEL[metric], unlimited: false };
+    },
+    [account, unrestricted],
+  );
+
+  const track = useCallback(
+    (event: string, props?: Record<string, unknown>) => {
+      if (!user) return;
+      call({ action: 'track', event, props: props ?? {} }).catch(() => {});
+    },
+    [user, call],
+  );
+
+  const value = useMemo<Ctx>(
+    () => ({ consume, check, can, requireFeature, usage, track, openUpgrade, unrestricted: !!unrestricted }),
+    [consume, check, can, requireFeature, usage, track, openUpgrade, unrestricted],
+  );
+
+  return (
+    <EntitlementsContext.Provider value={value}>
+      {children}
+      <QuotaAlertWatcher />
+      <UpgradeModal reason={reason} onClose={() => setReason(null)} />
+    </EntitlementsContext.Provider>
+  );
+};
+
+export const useEntitlements = () => {
+  const ctx = useContext(EntitlementsContext);
+  if (!ctx) throw new Error('useEntitlements must be used inside EntitlementsProvider');
+  return ctx;
+};
+--- migrations ---
+supabase/migrations/20260814111557_79e700bc-c5d6-434c-be52-4039b4fcc563.sql
+supabase/migrations/20260814111628_7bd5a4dd-d313-4b7d-87e2-a72c100e23a5.sql
+supabase/migrations/20260814120945_4d92de76-82c3-42d4-9670-e479087d7cd3.sql
+supabase/migrations/20260814121130_c087d090-4a2c-4da5-b759-02ba6fad28df.sql
+supabase/migrations/20260814121252_6c075a20-d454-4513-8e5c-dd694676f9d7.sql
+supabase/migrations/20260817090000_kivora_operator_unlimited.sql
+supabase/migrations/20260817123000_kivora_supperadmin_alias.sql
+supabase/migrations/20260817131000_ai_provider_settings.sql
+supabase/migrations/20260818022438_a2c7547d-7886-486f-90c7-7a3368624116.sql

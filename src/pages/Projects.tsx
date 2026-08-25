@@ -101,7 +101,7 @@ const Projects = () => {
                 </div>
                 <div className="mt-auto flex gap-2">
                   <Link
-                    to={r.kind === 'presentation' ? '/present' : '/book'}
+                    to={`${r.kind === 'presentation' ? '/present' : '/book'}?project=${encodeURIComponent(r.id)}`}
                     className="flex min-h-11 flex-1 items-center justify-center rounded-full border border-border text-xs font-ui font-bold"
                   >
                     เปิด

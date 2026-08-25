@@ -128,7 +128,8 @@ export async function loadAccount(userId: string): Promise<AccountState> {
 
   const normalizedPlanCode = String(sub.plan_code ?? 'free').toLowerCase();
   const { data: plan } = await db.from('plans').select('*').eq('code', normalizedPlanCode).maybeSingle();
-  const unlimited = isUnlimitedLike(normalizedPlanCode, plan?.name ?? sub.plan_code, (plan?.entitlements ?? {}) as Record<string, unknown>);
+  const unlimitedPlan = isUnlimitedLike(normalizedPlanCode, plan?.name ?? sub.plan_code, (plan?.entitlements ?? {}) as Record<string, unknown>);
+  const unlimited = unlimitedPlan || (await isAdmin(userId));
   const periodStart = new Date(sub.current_period_start).toISOString().slice(0, 10);
 
   const { data: counterRows } = await db

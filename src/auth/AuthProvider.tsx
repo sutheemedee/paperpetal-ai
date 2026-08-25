@@ -75,11 +75,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       supabase.from('user_roles').select('role').eq('user_id', uid),
     ]);
     setProfile((prof as Profile) ?? null);
-    setIsAdmin(!!roles?.some(r => OPERATOR_ROLES.has(String(r.role))));
+    const roleAdmin = !!roles?.some(r => OPERATOR_ROLES.has(String(r.role)));
+    setIsAdmin(roleAdmin);
 
     const { data, error } = await supabase.functions.invoke('entitlements', { body: { action: 'state' } });
     if (!error && data?.account) {
       setAccount({ ...fallbackAccount(), ...data.account });
+      setIsAdmin(roleAdmin || data.isAdmin === true);
     } else {
       setAccount(fallbackAccount());
     }

@@ -109,13 +109,6 @@ const ShowcaseReader = () => {
   const previewCount = pages.length;
   const progress = previewCount ? Math.round(((pageIndex + 1) / previewCount) * 100) : 0;
 
-  if (!project || !paper) return <Navigate to="/showcase" replace />;
-  if (!page) return null;
-
-  const next = () => setPageIndex(i => Math.min(previewCount - 1, i + 1));
-  const prev = () => setPageIndex(i => Math.max(0, i - 1));
-  const spreadPages = mode === 'spread' ? [page, pages[Math.min(pageIndex + 1, previewCount - 1)]].filter(Boolean) : [page];
-
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'ArrowRight') setPageIndex(i => Math.min(previewCount - 1, i + 1));
@@ -124,6 +117,13 @@ const ShowcaseReader = () => {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [previewCount]);
+
+  if (!project || !paper) return <Navigate to="/showcase" replace />;
+  if (!page) return null;
+
+  const next = () => setPageIndex(i => Math.min(previewCount - 1, i + 1));
+  const prev = () => setPageIndex(i => Math.max(0, i - 1));
+  const spreadPages = mode === 'spread' ? [page, pages[Math.min(pageIndex + 1, previewCount - 1)]].filter(Boolean) : [page];
 
   return (
     <div className="min-h-[100dvh] bg-[#070A18] text-white">

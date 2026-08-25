@@ -17,7 +17,7 @@ import { exportCoverAsPng } from '@/utils/exportCovers';
 import { exportToDocx } from '@/utils/exportDocx';
 import { exportToEpub } from '@/utils/exportEpub';
 import { exportToPdf } from '@/utils/exportPdf';
-import { hydrateBook, useIllustrations } from '@/hooks/useIllustrations';
+import { hydrateBook, isUsableImageUrl, pageKey, useIllustrations } from '@/hooks/useIllustrations';
 import { useDevice } from '@/hooks/use-device';
 import { useKnowledge } from '@/knowledge/store';
 import { useAuth } from '@/auth/AuthProvider';
@@ -57,6 +57,8 @@ const BookStudioV2 = () => {
   const [bookData, setBookData] = useState<any>(null);
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [backCoverImageUrl, setBackCoverImageUrl] = useState('');
+  const [coverBusy, setCoverBusy] = useState(false);
+  const [backCoverBusy, setBackCoverBusy] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState('');
@@ -74,32 +76,80 @@ const BookStudioV2 = () => {
   const selectedFont = fontById(fontId);
   const pages = useMemo(() => (bookData ? flattenBook(bookData) : []), [bookData]);
   const entry = pages[Math.min(current, Math.max(pages.length - 1, 0))];
+  const illustrationStats = useMemo(() => {
+    const chapters = bookData?.chapters || [];
+    const total = chapters.reduce((sum: number, chapter: any) => sum + 1 + (chapter.pages?.length || 0), 0);
+    const complete = chapters.reduce((sum: number, chapter: any) => {
+      const chapterDone = isUsableImageUrl(illustrations.chapterImages[chapter.chapterNumber] || chapter.imageUrl) ? 1 : 0;
+      const pagesDone = (chapter.pages || []).filter((page: any) => isUsableImageUrl(illustrations.pageImages[pageKey(chapter.chapterNumber, page.pageNumber)] || page.imageUrl)).length;
+      return sum + chapterDone + pagesDone;
+    }, 0);
+    return { total, complete, missing: Math.max(0, total - complete), failed: Object.keys(illustrations.errors).length };
+  }, [bookData, illustrations.chapterImages, illustrations.pageImages, illustrations.errors]);
 
   useEffect(() => {
-    const draft = readCreationDraft();
-    if (!draft) return;
-    const template = getTemplate(draft.templateId);
-    const defaults = designDefaultsFor(template);
-    setTitle(draft.topic || template?.name || '');
-    setPageCount(draft.pages || template?.defaultPageCount || 60);
-    setLanguage(draft.language || 'thai');
-    setDesignThemeId(draft.designThemeId || defaults.themeId);
-    setCoverStyleId(draft.coverStyleId || defaults.styleId);
-    setFontId(draft.fontId || defaults.fontId);
-    setSourceMode(draft.sourceIds?.length ? 'source_ai' : 'creative');
-    setCameFromCreate(Boolean(draft.autoStart || params.get('start') === '1'));
-    setAutoStartReady(Boolean(draft.autoStart || params.get('start') === '1'));
-    setStyleProfile({
-      tone: draft.tone || template?.writingDNA.tone || 'ชัดเจน เป็นมิตร มืออาชีพ',
-      complexity: template?.writingDNA.sentenceComplexity || 'medium',
-      language: draft.language || 'thai',
-      sentenceStyle: template?.writingDNA.paragraphLength || 'medium',
-      characteristics: [`Template: ${template?.name ?? draft.templateId}`, `Audience: ${draft.audience}`],
-      vocabularyLevel: template?.writingDNA.technicalLevel || 'intermediate',
-      writingPersona: 'KIVORA AI Design Director',
-      styleInstructions: `วางงานตามเทมเพลต ${template?.name ?? draft.templateId} และปรับภาษาให้เหมาะกับ ${draft.audience}`,
-    });
-  }, [params]);
+    let cancelled = false;
+    const loadEntry = async () => {
+      const projectParam = params.get('project');
+      if (projectParam && user) {
+        const { data } = await supabase
+          .from('projects')
+          .select('id, name, kind, cover_url, data')
+          .eq('id', projectParam)
+          .eq('kind', 'book')
+          .maybeSingle();
+        if (!cancelled && data) {
+          const saved = (data.data as any) || {};
+          const savedBook = saved.bookData || saved;
+          setProjectId(data.id);
+          setBookData(savedBook);
+          setTitle(savedBook.title || data.name || '');
+          setPageCount((savedBook.chapters || []).reduce((count: number, chapter: any) => count + (chapter.pages?.length || 0), 0) || 60);
+          setLanguage(saved.language || savedBook.language || 'thai');
+          setDesignThemeId(saved.designThemeId || 'ai-technology');
+          setCoverStyleId(saved.coverStyleId || 'modern');
+          setFontId(saved.fontId || 'noto-sans-thai');
+          setSourceMode(saved.sourceMode || 'creative');
+          setCoverImageUrl(saved.coverImageUrl || data.cover_url || '');
+          setBackCoverImageUrl(saved.backCoverImageUrl || '');
+          const savedSize = BOOK_SIZES.find(size => size.id === saved.size);
+          if (savedSize) setSelectedSize(savedSize);
+          setCameFromCreate(false);
+          setAutoStartReady(false);
+          setAutoStarted(true);
+          return;
+        }
+      }
+
+      const draft = readCreationDraft();
+      if (!draft || cancelled) return;
+      const template = getTemplate(draft.templateId);
+      const defaults = designDefaultsFor(template);
+      setTitle(draft.topic || template?.name || '');
+      setPageCount(draft.pages || template?.defaultPageCount || 60);
+      setLanguage(draft.language || 'thai');
+      setDesignThemeId(draft.designThemeId || defaults.themeId);
+      setCoverStyleId(draft.coverStyleId || defaults.styleId);
+      setFontId(draft.fontId || defaults.fontId);
+      setSourceMode(draft.sourceIds?.length ? 'source_ai' : 'creative');
+      setCameFromCreate(Boolean(draft.autoStart || params.get('start') === '1'));
+      setAutoStartReady(Boolean(draft.autoStart || params.get('start') === '1'));
+      setStyleProfile({
+        tone: draft.tone || template?.writingDNA.tone || 'ชัดเจน เป็นมิตร มืออาชีพ',
+        complexity: template?.writingDNA.sentenceComplexity || 'medium',
+        language: draft.language || 'thai',
+        sentenceStyle: template?.writingDNA.paragraphLength || 'medium',
+        characteristics: [`Template: ${template?.name ?? draft.templateId}`, `Audience: ${draft.audience}`],
+        vocabularyLevel: template?.writingDNA.technicalLevel || 'intermediate',
+        writingPersona: 'KIVORA AI Design Director',
+        styleInstructions: `วางงานตามเทมเพลต ${template?.name ?? draft.templateId} และปรับภาษาให้เหมาะกับ ${draft.audience}`,
+      });
+    };
+    void loadEntry();
+    return () => {
+      cancelled = true;
+    };
+  }, [params, user]);
 
   const applyAiDesign = () => {
     const lower = title.toLowerCase();
@@ -165,6 +215,9 @@ const BookStudioV2 = () => {
         const [front, back] = await Promise.all([generateCoverImage(book, selectedTheme.name), generateBackCoverImage(book)]);
         setCoverImageUrl(front);
         setBackCoverImageUrl(back);
+        if (!front || !back) {
+          toast.warning('สร้างเนื้อหาแล้ว แต่ภาพปกยังไม่ครบ กรุณาตรวจสอบ AI API Provider ใน Admin แล้วกดสร้างภาพใหม่');
+        }
       }
       setProgress(100);
       setProgressText('เสร็จแล้ว');
@@ -185,11 +238,12 @@ const BookStudioV2 = () => {
   const saveProject = async () => {
     if (!bookData || !user) return;
     setSaving(true);
+    const hydrated = hydrateBook(bookData, illustrations.chapterImages, illustrations.pageImages);
     const payload = {
-      name: bookData.title || title || 'Untitled book',
+      name: hydrated.title || title || 'Untitled book',
       kind: 'book',
       cover_url: coverImageUrl || null,
-      data: { bookData, size: selectedSize.id, designThemeId, coverStyleId, fontId, language, coverImageUrl, backCoverImageUrl },
+      data: { bookData: hydrated, size: selectedSize.id, designThemeId, coverStyleId, fontId, language, sourceMode, coverImageUrl, backCoverImageUrl },
     };
     const { error } = projectId
       ? await supabase.from('projects').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', projectId)
@@ -203,14 +257,74 @@ const BookStudioV2 = () => {
     toast.success('บันทึกโปรเจกต์แล้ว');
   };
 
+  const generateChapterIllustration = async (chapter: any) => {
+    if (!(await consume({ metric: 'aiImages', quantity: 1, operation: 'generate_chapter_image' }))) return false;
+    const ok = await illustrations.makeChapter(chapter, bookData?.title || title);
+    if (!ok) toast.error('สร้างภาพเปิดบทไม่สำเร็จ กรุณาตรวจสอบ API provider ใน Admin');
+    return ok;
+  };
+
+  const generatePageIllustration = async (chapter: any, page: any) => {
+    if (!(await consume({ metric: 'aiImages', quantity: 1, operation: 'generate_page_image' }))) return false;
+    const ok = await illustrations.makePage(chapter, page, bookData?.title || title);
+    if (!ok) toast.error('สร้างภาพประกอบหน้าไม่สำเร็จ กรุณาตรวจสอบ API provider ใน Admin');
+    return ok;
+  };
+
+  const regenerateCover = async () => {
+    if (!bookData || coverBusy) return false;
+    if (!(await consume({ metric: 'aiImages', quantity: 1, operation: 'regenerate_front_cover' }))) return false;
+    setCoverBusy(true);
+    try {
+      const url = await generateCoverImage(bookData, selectedTheme.name);
+      if (!url) {
+        toast.error('สร้างปกหน้าไม่สำเร็จ กรุณาตรวจสอบ API provider ใน Admin');
+        return false;
+      }
+      setCoverImageUrl(url);
+      return true;
+    } finally {
+      setCoverBusy(false);
+    }
+  };
+
+  const regenerateBackCover = async () => {
+    if (!bookData || backCoverBusy) return false;
+    if (!(await consume({ metric: 'aiImages', quantity: 1, operation: 'regenerate_back_cover' }))) return false;
+    setBackCoverBusy(true);
+    try {
+      const url = await generateBackCoverImage(bookData);
+      if (!url) {
+        toast.error('สร้างปกหลังไม่สำเร็จ กรุณาตรวจสอบ API provider ใน Admin');
+        return false;
+      }
+      setBackCoverImageUrl(url);
+      return true;
+    } finally {
+      setBackCoverBusy(false);
+    }
+  };
+
   const handleIllustrateAll = async () => {
-    if (!bookData || illustrateAll) return;
-    const targets = Math.max(1, flattenBook(bookData).length);
-    if (!(await consume({ metric: 'aiImages', quantity: targets, operation: 'illustrate_all' }))) return;
+    if (!bookData || illustrateAll || illustrationStats.missing === 0) return;
+    if (!(await consume({ metric: 'aiImages', quantity: illustrationStats.missing, operation: 'illustrate_all' }))) return;
     setIllustrateAll(true);
-    await illustrations.makeAll(bookData);
-    setIllustrateAll(false);
-    toast.success('สร้างภาพประกอบครบแล้ว');
+    setProgress(0);
+    setProgressText(`กำลังสร้างภาพประกอบ 0/${illustrationStats.missing}`);
+    try {
+      const result = await illustrations.makeAll(bookData, (done, total) => {
+        setProgress(total ? Math.round((done / total) * 100) : 100);
+        setProgressText(`กำลังสร้างภาพประกอบ ${done}/${total}`);
+      });
+      if (result.failed > 0) {
+        toast.warning(`สร้างภาพได้ ${result.succeeded}/${result.total} ส่วน กรุณาตรวจสอบ provider แล้วลองสร้างซ้ำเฉพาะส่วนที่ล้มเหลว`);
+      } else {
+        toast.success(`สร้างภาพประกอบครบ ${result.succeeded} ส่วนแล้ว`);
+      }
+    } finally {
+      setIllustrateAll(false);
+      setProgressText('');
+    }
   };
 
   const handleExport = async (format: ExportFormat) => {
@@ -229,8 +343,19 @@ const BookStudioV2 = () => {
     setExporting(format);
     try {
       if (format === 'docx') await exportToDocx(hydrated, selectedSize, coverImageUrl);
-      else if (format === 'pdf') await exportToPdf(hydrated, selectedSize, { coverImageUrl, chapterImages: illustrations.chapterImages }, (_pct, label) => setProgressText(label));
-      else if (format === 'epub') await exportToEpub(hydrated, { coverImageUrl, chapterImages: illustrations.chapterImages });
+      else if (format === 'pdf') await exportToPdf(hydrated, selectedSize, {
+        coverImageUrl,
+        chapterImages: illustrations.chapterImages,
+        theme: selectedTheme,
+        font: selectedFont,
+        coverStyle: selectedCoverStyle,
+      }, (_pct, label) => setProgressText(label));
+      else if (format === 'epub') await exportToEpub(hydrated, {
+        coverImageUrl,
+        chapterImages: illustrations.chapterImages,
+        theme: selectedTheme,
+        font: selectedFont,
+      });
       else {
         await exportCoverAsPng('front-cover', 'front-cover.png');
         await exportCoverAsPng('back-cover', 'back-cover.png');
@@ -351,9 +476,14 @@ const BookStudioV2 = () => {
 
       {bookData && (
         <>
-          <button onClick={handleIllustrateAll} disabled={illustrateAll} className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-card text-sm font-ui font-bold disabled:opacity-60">
-            <Wand2 className="h-4 w-4" /> {illustrateAll ? 'AI กำลังวาด...' : 'วาดภาพประกอบทุกส่วน'}
+          <button onClick={handleIllustrateAll} disabled={illustrateAll || illustrationStats.missing === 0} className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-card text-sm font-ui font-bold disabled:opacity-60">
+            <Wand2 className="h-4 w-4" /> {illustrateAll ? 'AI กำลังวาด...' : illustrationStats.missing === 0 ? 'ภาพประกอบครบแล้ว' : `สร้างภาพที่ยังขาด (${illustrationStats.missing})`}
           </button>
+          {illustrationStats.failed > 0 && (
+            <p className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-xs font-ui leading-relaxed text-destructive">
+              ภาพที่ยังไม่สำเร็จ {illustrationStats.failed} ส่วน: ตรวจสอบ AI API Provider ใน Admin แล้วกดปุ่มสร้างใหม่บนส่วนนั้นได้ทันที
+            </p>
+          )}
           <button onClick={saveProject} disabled={saving} className="flex min-h-12 items-center justify-center gap-2 rounded-full border border-border bg-card text-sm font-ui font-bold disabled:opacity-60">
             <Save className="h-4 w-4" /> {saving ? 'กำลังบันทึก...' : projectId ? 'บันทึกการแก้ไข' : 'บันทึกเป็นโปรเจกต์'}
           </button>
@@ -399,7 +529,21 @@ const BookStudioV2 = () => {
             onPrev={current > 0 ? () => setCurrent(c => Math.max(0, c - 1)) : undefined}
             onNext={current < pages.length - 1 ? () => setCurrent(c => Math.min(pages.length - 1, c + 1)) : undefined}
           >
-            <BookPageCanvas entry={entry} bookData={bookData} bookSize={selectedSize} illustrations={illustrations} coverImageUrl={coverImageUrl} backCoverImageUrl={backCoverImageUrl} onOpenImage={(url, caption) => setViewer({ url, caption })} />
+            <BookPageCanvas
+              entry={entry}
+              bookData={bookData}
+              bookSize={selectedSize}
+              illustrations={illustrations}
+              coverImageUrl={coverImageUrl}
+              backCoverImageUrl={backCoverImageUrl}
+              onOpenImage={(url, caption) => setViewer({ url, caption })}
+              onMakeChapter={generateChapterIllustration}
+              onMakePage={generatePageIllustration}
+              onMakeCover={regenerateCover}
+              onMakeBackCover={regenerateBackCover}
+              coverBusy={coverBusy}
+              backCoverBusy={backCoverBusy}
+            />
           </ZoomPanCanvas>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 overflow-y-auto p-6 text-center">
@@ -415,7 +559,7 @@ const BookStudioV2 = () => {
 
       {bookData && (
         <div aria-hidden className="pointer-events-none fixed -left-[9999px] top-0 w-[320px]">
-          <CoverDesigner bookData={bookData} coverImageUrl={coverImageUrl} backCoverImageUrl={backCoverImageUrl} colorTheme={selectedTheme.name} onRegenerateCover={async () => setCoverImageUrl(await generateCoverImage(bookData, selectedTheme.name))} onRegenerateBack={async () => setBackCoverImageUrl(await generateBackCoverImage(bookData))} />
+          <CoverDesigner bookData={bookData} coverImageUrl={coverImageUrl} backCoverImageUrl={backCoverImageUrl} colorTheme={selectedTheme.name} onRegenerateCover={regenerateCover} onRegenerateBack={regenerateBackCover} />
         </div>
       )}
 

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { generateText, jsonFromText } from "../_shared/ai-providers.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -131,13 +132,11 @@ serve(async (req) => {
 
   try {
     const { sourceType, url, text, title: givenTitle, language = "thai" } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     let title = givenTitle || "";
     let body = text || "";
     let meta: Record<string, unknown> = { sourceType, url: url || "" };
-    let warnings: string[] = [];
+    const warnings: string[] = [];
 
     if (sourceType === "youtube" && url) {
       const yt = await fetchYoutube(url);
@@ -163,19 +162,8 @@ serve(async (req) => {
     }
 
     const langLabel = language === "english" ? "English" : "Thai";
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          {
-            role: "system",
-            content: `You are KIVORA's Source Processor. Extract knowledge strictly from the supplied source text. Never invent facts. Write summaries in ${langLabel}. Return only valid JSON.`,
-          },
-          {
-            role: "user",
-            content: `SOURCE TYPE: ${sourceType}
+    const systemPrompt = `You are KIVORA's Source Processor. Extract knowledge strictly from the supplied source text. Never invent facts. Write summaries in ${langLabel}. Return only valid JSON.`;
+    const userPrompt = `SOURCE TYPE: ${sourceType}
 SOURCE TITLE: ${title}
 SOURCE URL: ${url || "-"}
 
@@ -188,38 +176,32 @@ Return JSON with:
 title, sourceCategory, reliabilityNote, quickSummary, detailedSummary, beginnerSummary,
 keyPoints, concepts, steps, examples, toolsMentioned, namesMentioned, claims, warnings,
 actionItems, questions, keywords, entities, timeline, chapters, chunks.
-Each chunk must include heading, location, content, summary, keywords.`,
-          },
-        ],
-      }),
-    });
+Each chunk must include heading, location, content, summary, keywords.`;
 
-    if (!res.ok) {
-      const t = await res.text();
-      console.error("AI gateway error", res.status, t);
-      if (res.status === 402) {
-        const fallbackWarning = "AI gateway credit exhausted: saved without AI enrichment.";
-        return json({
-          title,
-          meta: { ...meta, aiEnrichment: "deferred" },
-          warnings: [...warnings, fallbackWarning],
-          rawText: body.slice(0, 20000),
-          knowledge: fallbackKnowledge(title, body, [...warnings, fallbackWarning]),
-        });
-      }
-      if (res.status === 429) return json({ error: "ระบบ AI มีคำขอมากเกินไป กรุณาลองใหม่อีกครั้ง" }, 429);
-      return json({ error: "วิเคราะห์แหล่งข้อมูลไม่สำเร็จ" }, 500);
+    // Attaching external sources must never fail hard: if no AI provider is
+    // available (or all of them fail), the source is still saved for the user
+    // and enrichment is deferred until it is converted into an e-book.
+    let knowledge: Record<string, unknown>;
+    try {
+      const { text: aiText } = await generateText([
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ]);
+      knowledge = jsonFromText(aiText);
+    } catch (aiError) {
+      console.error("ingest ai enrichment failed", aiError);
+      const fallbackWarning = "บันทึกแหล่งข้อมูลแล้วโดยยังไม่วิเคราะห์ด้วย AI (ผู้ให้บริการ AI ไม่พร้อมใช้งาน) — ระบบจะวิเคราะห์เมื่อสร้างเป็น e-book";
+      return json({
+        title,
+        meta: { ...meta, aiEnrichment: "deferred" },
+        warnings: [...warnings, fallbackWarning],
+        rawText: body.slice(0, 20000),
+        knowledge: fallbackKnowledge(title, body, [...warnings, fallbackWarning]),
+      });
     }
 
-    const data = await res.json();
-    let content: string = data.choices?.[0]?.message?.content ?? "";
-    content = content.replace(/```json|```/g, "").trim();
-    const start = content.indexOf("{");
-    const end = content.lastIndexOf("}");
-    const knowledge = JSON.parse(content.slice(start, end + 1));
-
     return json({
-      title: knowledge.title || title,
+      title: (knowledge.title as string) || title,
       meta,
       warnings,
       rawText: body.slice(0, 20000),

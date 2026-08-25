@@ -41,6 +41,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_provider_settings: {
+        Row: {
+          api_key: string
+          base_url: string | null
+          capability: string
+          chat_model: string
+          created_at: string
+          enabled: boolean
+          id: string
+          image_model: string | null
+          label: string
+          priority: number
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          api_key: string
+          base_url?: string | null
+          capability?: string
+          chat_model: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_model?: string | null
+          label?: string
+          priority?: number
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string
+          base_url?: string | null
+          capability?: string
+          chat_model?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          image_model?: string | null
+          label?: string
+          priority?: number
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       analytics_events: {
         Row: {
           created_at: string
@@ -566,7 +611,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "superadmin" | "supperadmin" | "subperadmin" | "user"
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -694,7 +739,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "superadmin", "supperadmin", "subperadmin", "user"],
+      app_role: ["admin", "user"],
     },
   },
 } as const

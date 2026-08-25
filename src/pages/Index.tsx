@@ -7,7 +7,7 @@ import { exportToDocx } from '@/utils/exportDocx';
 import { exportToPdf } from '@/utils/exportPdf';
 import { exportToEpub } from '@/utils/exportEpub';
 import { exportCoverAsPng } from '@/utils/exportCovers';
-import { useIllustrations, hydrateBook } from '@/hooks/useIllustrations';
+import { useIllustrations, hydrateBook, isUsableImageUrl, pageKey } from '@/hooks/useIllustrations';
 import { useDevice } from '@/hooks/use-device';
 import { useKnowledge } from '@/knowledge/store';
 import BookSizeSelector from '@/components/BookSizeSelector';
@@ -85,6 +85,16 @@ const Index = () => {
   const selectedTheme = themeById(designThemeId);
   const selectedCoverStyle = styleById(coverStyleId);
   const selectedFont = fontById(fontId);
+  const illustrationStats = useMemo(() => {
+    const chapters = bookData?.chapters || [];
+    const total = chapters.reduce((sum: number, chapter: any) => sum + 1 + (chapter.pages?.length || 0), 0);
+    const complete = chapters.reduce((sum: number, chapter: any) => {
+      const chapterDone = isUsableImageUrl(illustrations.chapterImages[chapter.chapterNumber] || chapter.imageUrl) ? 1 : 0;
+      const pagesDone = (chapter.pages || []).filter((page: any) => isUsableImageUrl(illustrations.pageImages[pageKey(chapter.chapterNumber, page.pageNumber)] || page.imageUrl)).length;
+      return sum + chapterDone + pagesDone;
+    }, 0);
+    return { total, complete, missing: Math.max(0, total - complete) };
+  }, [bookData, illustrations.chapterImages, illustrations.pageImages]);
 
   useEffect(() => {
     const saved = readCreationDraft();
@@ -170,6 +180,7 @@ const Index = () => {
         ]);
         setCoverImageUrl(coverUrl);
         setBackCoverImageUrl(backUrl);
+        if (!coverUrl || !backUrl) toast.warning('สร้างเนื้อหาแล้ว แต่ภาพปกยังไม่ครบ กรุณาตรวจสอบ AI API Provider ใน Admin');
       }
 
       setProgress(100);
@@ -181,39 +192,69 @@ const Index = () => {
     setGenerating(false);
   };
 
+  const generateChapterIllustration = async (chapter: any) => {
+    if (!(await consume({ metric: 'aiImages', quantity: 1, operation: 'generate_chapter_image' }))) return false;
+    const ok = await illustrations.makeChapter(chapter, bookData?.title || title);
+    if (!ok) toast.error('สร้างภาพเปิดบทไม่สำเร็จ กรุณาตรวจสอบ API provider ใน Admin');
+    return ok;
+  };
+
+  const generatePageIllustration = async (chapter: any, page: any) => {
+    if (!(await consume({ metric: 'aiImages', quantity: 1, operation: 'generate_page_image' }))) return false;
+    const ok = await illustrations.makePage(chapter, page, bookData?.title || title);
+    if (!ok) toast.error('สร้างภาพประกอบหน้าไม่สำเร็จ กรุณาตรวจสอบ API provider ใน Admin');
+    return ok;
+  };
+
   const handleIllustrateAll = async () => {
-    if (!bookData || illustrateAll) return;
-    const targets = flattenBook(bookData).length;
-    if (!(await consume({ metric: 'aiImages', quantity: Math.max(1, targets), operation: 'illustrate_all' }))) return;
+    if (!bookData || illustrateAll || illustrationStats.missing === 0) return;
+    if (!(await consume({ metric: 'aiImages', quantity: illustrationStats.missing, operation: 'illustrate_all' }))) return;
     setIllustrateAll(true);
-    toast.info('AI กำลังวาดภาพประกอบทุกส่วน อาจใช้เวลาสักครู่');
-    await illustrations.makeAll(bookData);
-    setIllustrateAll(false);
-    toast.success('วาดภาพประกอบครบทุกส่วนแล้ว!');
+    toast.info(`AI กำลังวาดภาพประกอบ ${illustrationStats.missing} ส่วน อาจใช้เวลาสักครู่`);
+    try {
+      const result = await illustrations.makeAll(bookData);
+      if (result.failed > 0) toast.warning(`สร้างภาพได้ ${result.succeeded}/${result.total} ส่วน กรุณาตรวจสอบ provider แล้วลองใหม่`);
+      else toast.success(`วาดภาพประกอบครบ ${result.succeeded} ส่วนแล้ว`);
+    } finally {
+      setIllustrateAll(false);
+    }
   };
 
   const handleRegenerateCover = async () => {
-    if (!bookData) return;
-    if (!(await consume({ metric: 'aiImages', operation: 'regenerate_front_cover' }))) return;
+    if (!bookData) return false;
+    if (!(await consume({ metric: 'aiImages', quantity: 1, operation: 'regenerate_front_cover' }))) return false;
     setCoverImageUrl('');
-    setCoverImageUrl(await generateCoverImage(bookData, colorTheme));
+    const url = await generateCoverImage(bookData, colorTheme);
+    if (!url) {
+      toast.error('สร้างปกหน้าไม่สำเร็จ กรุณาตรวจสอบ API provider ใน Admin');
+      return false;
+    }
+    setCoverImageUrl(url);
+    return true;
   };
 
   const handleRegenerateBack = async () => {
-    if (!bookData) return;
-    if (!(await consume({ metric: 'aiImages', operation: 'regenerate_back_cover' }))) return;
+    if (!bookData) return false;
+    if (!(await consume({ metric: 'aiImages', quantity: 1, operation: 'regenerate_back_cover' }))) return false;
     setBackCoverImageUrl('');
-    setBackCoverImageUrl(await generateBackCoverImage(bookData));
+    const url = await generateBackCoverImage(bookData);
+    if (!url) {
+      toast.error('สร้างปกหลังไม่สำเร็จ กรุณาตรวจสอบ API provider ใน Admin');
+      return false;
+    }
+    setBackCoverImageUrl(url);
+    return true;
   };
 
   const saveProject = async () => {
     if (!bookData || !user) return;
     setSaving(true);
+    const hydrated = hydrateBook(bookData, illustrations.chapterImages, illustrations.pageImages);
     const payload = {
-      name: bookData.title || title || 'หนังสือไม่มีชื่อ',
+      name: hydrated.title || title || 'หนังสือไม่มีชื่อ',
       kind: 'book',
       cover_url: coverImageUrl || null,
-      data: { bookData, size: selectedSize.id, colorTheme, coverStyle, language, coverImageUrl, backCoverImageUrl },
+      data: { bookData: hydrated, size: selectedSize.id, colorTheme, coverStyle, designThemeId, coverStyleId, fontId, language, sourceMode, coverImageUrl, backCoverImageUrl },
     };
     const { error } = projectId
       ? await supabase.from('projects').update({ ...payload, updated_at: new Date().toISOString() }).eq('id', projectId)
@@ -258,12 +299,12 @@ const Index = () => {
         await exportToPdf(
           hydrated,
           selectedSize,
-          { coverImageUrl, chapterImages: illustrations.chapterImages },
+          { coverImageUrl, chapterImages: illustrations.chapterImages, theme: selectedTheme, font: selectedFont, coverStyle: selectedCoverStyle },
           (_pct, label) => setProgressText(label),
         );
         toast.success('ดาวน์โหลด PDF สำเร็จ!');
       } else if (format === 'epub') {
-        await exportToEpub(hydrated, { coverImageUrl, chapterImages: illustrations.chapterImages });
+        await exportToEpub(hydrated, { coverImageUrl, chapterImages: illustrations.chapterImages, theme: selectedTheme, font: selectedFont });
         toast.success('ดาวน์โหลด E-Book (.epub) สำเร็จ!');
       } else {
         await exportCoverAsPng('front-cover', 'front-cover.png');
@@ -478,15 +519,20 @@ const Index = () => {
             onPrev={current > 0 ? () => setCurrent(c => Math.max(0, c - 1)) : undefined}
             onNext={current < pages.length - 1 ? () => setCurrent(c => Math.min(pages.length - 1, c + 1)) : undefined}
           >
-            <BookPageCanvas
-              entry={entry}
-              bookData={bookData}
-              bookSize={selectedSize}
-              illustrations={illustrations}
-              coverImageUrl={coverImageUrl}
-              backCoverImageUrl={backCoverImageUrl}
-              onOpenImage={(url, caption) => setViewer({ url, caption })}
-            />
+                      <BookPageCanvas
+            entry={entry}
+            bookData={bookData}
+            bookSize={selectedSize}
+            illustrations={illustrations}
+            coverImageUrl={coverImageUrl}
+            backCoverImageUrl={backCoverImageUrl}
+            onOpenImage={(url, caption) => setViewer({ url, caption })}
+            onMakeChapter={generateChapterIllustration}
+            onMakePage={generatePageIllustration}
+            onMakeCover={handleRegenerateCover}
+            onMakeBackCover={handleRegenerateBack}
+          />
+
           </ZoomPanCanvas>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 overflow-y-auto p-6 text-center">
