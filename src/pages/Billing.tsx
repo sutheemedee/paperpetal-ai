@@ -106,7 +106,12 @@ const Billing = () => {
         </section>
 
         <section className="rounded-3xl border border-border bg-card p-5">
-          <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">ประวัติการชำระเงิน</h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-display text-sm font-bold uppercase tracking-wide text-muted-foreground">ประวัติการชำระเงิน</h2>
+            <Link to="/billing/history" className="flex min-h-11 items-center rounded-full border border-border px-4 text-xs font-ui font-bold">
+              ดูทั้งหมด / ดาวน์โหลดใบเสร็จ
+            </Link>
+          </div>
           {invoices.length === 0 ? (
             <p className="mt-3 text-xs font-ui text-muted-foreground">ยังไม่มีใบแจ้งหนี้</p>
           ) : (
