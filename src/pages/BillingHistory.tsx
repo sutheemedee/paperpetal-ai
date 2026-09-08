@@ -126,7 +126,7 @@ button{margin-top:24px;padding:10px 18px;border:0;border-radius:999px;background
 
   return (
     <AppShell title="ประวัติการชำระเงิน">
-      <Seo title="ประวัติการชำระเงิน | PaperPetal AI" description="ดูรอบบิล สถานะการชำระเงิน และดาวน์โหลดใบเสร็จของบัญชี PaperPetal AI" noindex />
+      <Seo title="ประวัติการชำระเงิน | PaperPetal AI" description="ดูรอบบิล สถานะการชำระเงิน และดาวน์โหลดใบเสร็จของบัญชี PaperPetal AI" path="/billing/history" noindex />
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-4 p-4 md:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

@@ -18,6 +18,7 @@ import Features from "./pages/Features.tsx";
 import CreateWithKivora from "./pages/CreateWithKivora.tsx";
 import PublicTemplates from "./pages/PublicTemplates.tsx";
 import Billing from "./pages/Billing.tsx";
+import BillingHistory from "./pages/BillingHistory.tsx";
 import Admin from "./pages/Admin.tsx";
 import Onboarding from "./pages/Onboarding.tsx";
 import Templates from "./pages/Templates.tsx";
@@ -77,6 +78,7 @@ const App = () => (
                 <Route path="/template-library" element={guarded(<Templates />)} />
                 <Route path="/create" element={guarded(<Create />)} />
                 <Route path="/billing" element={guarded(<Billing />)} />
+                <Route path="/billing/history" element={guarded(<BillingHistory />)} />
                 <Route path="/knowledge" element={guarded(<Knowledge />)} />
                 <Route path="/chat" element={guarded(<Chat />)} />
                 <Route path="/present" element={guarded(<Present />)} />
