@@ -96,6 +96,7 @@ const TABS = [
   { id: 'overview', label: 'ภาพรวม' },
   { id: 'sales', label: 'ยอดขาย' },
   { id: 'ai', label: 'ตั้งค่า AI / API' },
+  { id: 'templates', label: 'เทมเพลต' },
   { id: 'users', label: 'ผู้ใช้' },
 ] as const;
 
