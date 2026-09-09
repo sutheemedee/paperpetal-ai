@@ -4,6 +4,7 @@ import { Loader2, Infinity as InfinityIcon } from 'lucide-react';
 import AppShell from '@/components/AppShell';
 import { supabase } from '@/integrations/supabase/client';
 import { PlanCode, UsageMetric } from '@/lib/plans';
+import TemplateManager from '@/components/admin/TemplateManager';
 
 interface Metrics {
   totalUsers: number;
@@ -538,6 +539,8 @@ const Admin = () => {
                 </div>
               </section>
             )}
+
+            {tab === 'templates' && <TemplateManager />}
 
             {tab === 'users' && (
               <section className="rounded-2xl border border-border bg-card p-4">
