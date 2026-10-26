@@ -18,8 +18,8 @@ export const RANGE_OPTIONS = [
 
 const chartConfig = {
   preview: { label: 'เปิดดู', color: 'hsl(var(--primary))' },
-  use: { label: 'ใช้งาน', color: 'hsl(var(--secondary))' },
-  completion: { label: 'สร้างสำเร็จ', color: 'hsl(var(--accent))' },
+  use: { label: 'ใช้งาน', color: 'hsl(var(--magenta))' },
+  completion: { label: 'สร้างสำเร็จ', color: 'hsl(var(--warning))' },
 } satisfies ChartConfig;
 
 const dayKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -83,8 +83,8 @@ const TemplateStats = ({ events, days, onDaysChange, loading, error }: Props) =>
 
   const cards = [
     { label: 'เปิดดู', value: totals.preview, icon: Eye, tone: 'text-primary' },
-    { label: 'ใช้งาน', value: totals.use, icon: MousePointerClick, tone: 'text-secondary' },
-    { label: 'สร้างสำเร็จ', value: totals.completion, icon: CheckCircle2, tone: 'text-accent' },
+    { label: 'ใช้งาน', value: totals.use, icon: MousePointerClick, tone: 'text-magenta' },
+    { label: 'สร้างสำเร็จ', value: totals.completion, icon: CheckCircle2, tone: 'text-warning' },
     { label: 'อัตราเปิดดู → ใช้งาน', value: `${conversion}%`, icon: TrendingUp, tone: 'text-success' },
   ];
 
