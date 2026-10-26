@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/auth/AuthProvider';
+import { supabase } from '@/integrations/supabase/client';
 import { TEMPLATES, getTemplate } from './catalog';
 import { TemplateDefinition } from './types';
 
@@ -39,12 +40,27 @@ const ANALYTICS_KEY = 'paperpetal.templates.analytics.v1';
 
 export type TemplateAnalytics = Record<string, Partial<Record<TemplateEvent, number>>>;
 
+/** บันทึกเหตุการณ์ลงฐานข้อมูล (ทุกผู้ใช้) เพื่อให้หลังบ้านดูสถิติตามช่วงเวลาได้ — ไม่บล็อก UI */
+const logTemplateEvent = async (event: TemplateEvent, templateId: string) => {
+  try {
+    const { data } = await supabase.auth.getSession();
+    await supabase.from('template_events').insert({
+      event,
+      template_id: templateId.slice(0, 120),
+      user_id: data.session?.user.id ?? null,
+    });
+  } catch {
+    /* analytics must never break the app */
+  }
+};
+
 export const trackTemplate = (event: TemplateEvent, templateId: string) => {
   const all = read<TemplateAnalytics>(ANALYTICS_KEY, {});
   const row = all[templateId] ?? {};
   row[event] = (row[event] ?? 0) + 1;
   all[templateId] = row;
   write(ANALYTICS_KEY, all);
+  void logTemplateEvent(event, templateId);
 };
 
 export const readTemplateAnalytics = () => read<TemplateAnalytics>(ANALYTICS_KEY, {});
