@@ -204,24 +204,38 @@ const BookStudioV2 = () => {
     illustrations.reset();
 
     try {
-      setProgress(25);
-      setProgressText('กำลังวางโครงสร้างและเขียนเนื้อหา...');
-      const book = await generateBook(title, pageCount, language, designProfile(), chatPayloadSources(), sourceMode);
+      setProgress(10);
+      setProgressText('กำลังวางโครงสร้างหนังสือ...');
+      const book = await generateBook(title, pageCount, language, designProfile(), chatPayloadSources(), sourceMode, ({ done, total, stage }) => {
+        if (stage === 'outline') {
+          setProgress(10);
+          setProgressText('กำลังวางโครงสร้างหนังสือ...');
+        } else {
+          setProgress(15 + Math.round((done / Math.max(1, total)) * 55));
+          setProgressText(`กำลังเขียนเนื้อหา บทที่ ${done}/${total}...`);
+        }
+      });
       if (!book) throw new Error('สร้างหนังสือไม่สำเร็จ');
       setBookData(book);
-      setProgress(65);
+      setProgress(75);
       setProgressText('กำลังสร้างปกหน้าและปกหลัง...');
       if (await consume({ metric: 'aiImages', quantity: 2, operation: 'generate_covers' })) {
         const [front, back] = await Promise.all([generateCoverImage(book, selectedTheme.name), generateBackCoverImage(book)]);
         setCoverImageUrl(front);
         setBackCoverImageUrl(back);
         if (!front || !back) {
-          toast.warning('สร้างเนื้อหาแล้ว แต่ภาพปกยังไม่ครบ กรุณาตรวจสอบ AI API Provider ใน Admin แล้วกดสร้างภาพใหม่');
+          toast.warning('สร้างเนื้อหาแล้ว แต่ภาพปกยังไม่ครบ กรุณากดสร้างภาพปกใหม่อีกครั้ง');
         }
       }
       setProgress(100);
       setProgressText('เสร็จแล้ว');
-      toast.success('สร้างหนังสือสำเร็จ');
+      if (book.fallback) {
+        toast.warning('ระบบ AI ไม่พร้อมชั่วคราว จึงสร้างเป็นโครงร่างให้ก่อน กรุณากดสร้างใหม่อีกครั้งภายหลัง');
+      } else if (book.partial) {
+        toast.warning(`สร้างหนังสือแล้ว แต่มี ${book.failedChapters} บทที่ยังเขียนไม่สำเร็จ กรุณาตรวจสอบก่อนส่งออก`);
+      } else {
+        toast.success('สร้างหนังสือสำเร็จ');
+      }
     } catch (err: any) {
       toast.error(err?.message || 'สร้างหนังสือไม่สำเร็จ');
     } finally {
