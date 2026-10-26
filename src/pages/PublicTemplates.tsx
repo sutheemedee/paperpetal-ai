@@ -6,6 +6,7 @@ import PublicFooter from '@/components/marketing/PublicFooter';
 import Seo, { breadcrumbJsonLd, itemListJsonLd, webPageJsonLd } from '@/components/Seo';
 import { TemplateVisual } from '@/components/marketing/MiniPreviews';
 import { TEMPLATES } from '@/templates/catalog';
+import { trackTemplate } from '@/templates/store';
 import { CATEGORY_LABEL, CONTENT_TYPE_LABEL, TemplateCategory } from '@/templates/types';
 
 const categoryIds: ('all' | TemplateCategory)[] = [
@@ -124,10 +125,10 @@ const PublicTemplates = () => {
                     <span className="col-span-2 rounded-lg border border-white/10 px-2 py-1.5">{template.visualDNA.coverStyle}</span>
                   </div>
                   <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                    <Link to={`/showcase?template=${template.id}`} className="flex min-h-10 items-center justify-center gap-1 rounded-lg border border-white/10 text-xs font-ui font-bold">
+                    <Link to={`/showcase?template=${template.id}`} onClick={() => trackTemplate('template_preview', template.id)} className="flex min-h-10 items-center justify-center gap-1 rounded-lg border border-white/10 text-xs font-ui font-bold">
                       <Eye className="h-3.5 w-3.5" /> Preview
                     </Link>
-                    <Link to={`/auth/sign-up?template=${template.id}`} className="flex min-h-10 items-center justify-center gap-1 rounded-lg bg-gradient-ai px-3 text-xs font-ui font-bold text-primary-foreground">
+                    <Link to={`/auth/sign-up?template=${template.id}`} onClick={() => trackTemplate('template_view', template.id)} className="flex min-h-10 items-center justify-center gap-1 rounded-lg bg-gradient-ai px-3 text-xs font-ui font-bold text-primary-foreground">
                       <Sparkles className="h-3.5 w-3.5" /> ใช้เทมเพลต
                     </Link>
                   </div>

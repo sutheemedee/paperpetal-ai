@@ -62,8 +62,9 @@ const isUnlimitedLike = (code?: string | null, name?: string | null, entitlement
 };
 
 export async function isAdmin(userId: string) {
-  const { data } = await admin().from('user_roles').select('role').eq('user_id', userId).in('role', OPERATOR_ROLES);
-  return (data ?? []).length > 0;
+  // Filter in code: role values that are not in the app_role enum make an SQL `in` filter fail entirely.
+  const { data } = await admin().from('user_roles').select('role').eq('user_id', userId);
+  return (data ?? []).some((r: { role: string }) => OPERATOR_ROLES.includes(String(r.role)));
 }
 
 export interface AccountState {
