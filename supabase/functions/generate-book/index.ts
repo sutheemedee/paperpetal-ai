@@ -53,7 +53,7 @@ serve(async (req) => {
   }
 
   try {
-    const { title, pageCount, language, styleProfile, sources = [], sourceMode = 'source_ai' } = await req.json();
+    const { title, pageCount, language, styleProfile, sources = [], sourceMode = 'source_ai', mode, chapter, bookTitle, bookOutline } = await req.json();
     const buildSystemPrompt = (sp: any): string => {
       if (sp) {
         return `You are a professional book author.
@@ -88,6 +88,81 @@ ${(s.chunks || []).map((c: any) => `- [${c.location || 'n/a'}] ${c.heading || ''
 ${sourceMode === 'source_only' ? '- SOURCE ONLY: do not add facts that are absent from the sources; state clearly when information is missing.' : ''}
 ${sourceMode === 'creative' ? '- CREATIVE: you may transform the source material creatively.' : ''}`
       : '';
+
+    const json = (body: unknown, status = 200) =>
+      new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+    /* ---------- Mode: outline (long books are written chapter by chapter) ---------- */
+    if (mode === 'outline') {
+      const total = Math.max(6, Math.min(300, Number(pageCount) || 60));
+      const chapterCount = Math.max(3, Math.min(15, Math.round(total / 8)));
+      try {
+        const { text } = await generateText([
+          { role: "system", content: buildSystemPrompt(styleProfile) },
+          {
+            role: "user",
+            content: `${sourceBlock}\n\nPlan a complete e-book on the topic: "${title}".
+Language: ${langLabel}
+The book must have EXACTLY ${chapterCount} chapters and a TOTAL of ${total} content pages, spread across the chapters (sum of pagePlan lengths = ${total}).
+
+Return ONLY valid JSON (no markdown, no backticks):
+{
+  "title": string,
+  "subtitle": string,
+  "author": string,
+  "description": string,
+  "chapters": [
+    {
+      "chapterNumber": number,
+      "chapterTitle": string,
+      "chapterImagePrompt": "detailed English prompt for an AI image that represents this chapter visually, no text",
+      "pagePlan": [ { "heading": string, "summary": "1-2 sentences describing what this page covers" } ]
+    }
+  ],
+  "conclusion": string,
+  "backCoverText": string,
+  "coverImagePrompt": "detailed English prompt for the book cover illustration — no text, symbolic, editorial style"
+}`,
+          },
+        ]);
+        return json(jsonFromText(text));
+      } catch (providerErr) {
+        console.error("outline provider fallback:", providerErr);
+        return json(fallbackBook(title, pageCount, language, styleProfile, sources));
+      }
+    }
+
+    /* ---------- Mode: chapter (write the full pages for one chapter) ---------- */
+    if (mode === 'chapter') {
+      const plan: Array<{ heading: string; summary?: string }> = Array.isArray(chapter?.pagePlan) ? chapter.pagePlan : [];
+      if (!plan.length) return json({ error: 'Missing chapter page plan' }, 400);
+      try {
+        const { text } = await generateText([
+          { role: "system", content: buildSystemPrompt(styleProfile) },
+          {
+            role: "user",
+            content: `${sourceBlock}\n\nBook: "${bookTitle || title}"
+Book outline (for continuity): ${String(bookOutline || '').slice(0, 1500)}
+
+Write chapter ${chapter.chapterNumber}: "${chapter.chapterTitle}".
+Language: ${langLabel}
+Write EXACTLY ${plan.length} pages, in this order:
+${plan.map((p, i) => `${i + 1}. ${p.heading} — ${p.summary || ''}`).join('\n')}
+
+Each page body must be rich, well-structured prose of 180-280 words (or the Thai equivalent), with concrete examples. Do not repeat the heading inside the body.
+
+Return ONLY valid JSON (no markdown, no backticks):
+{ "pages": [ { "heading": string, "body": string } ] }`,
+          },
+        ]);
+        const data = jsonFromText(text);
+        if (!Array.isArray(data?.pages) || !data.pages.length) throw new Error('empty_pages');
+        return json(data);
+      } catch (providerErr) {
+        console.error("chapter generation failed:", providerErr);
+        return json({ error: 'เขียนบทนี้ไม่สำเร็จ', retryable: true }, 503);
+      }
+    }
 
     try {
       const { text } = await generateText([
